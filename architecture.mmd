@@ -1,0 +1,23 @@
+graph TD
+    subgraph Client ["Client Layer"]
+        UI[Dashboard and Shared Groups UI]
+        Chat[AI Copilot and Natural Language Parser]
+    end
+
+    subgraph API ["API Layer"]
+        Auth[OAuth Session]
+        TRPCRouter[tRPC Routers and Procedures]
+    end
+
+    subgraph Core ["Backend Core and Storage"]
+        LLM[LLM Service]
+        Storage[S3-Compatible File Storage]
+        DB[(PostgreSQL Database)]
+    end
+
+    UI --> TRPCRouter
+    Chat --> TRPCRouter
+    TRPCRouter --> Auth
+    TRPCRouter --> LLM
+    TRPCRouter --> Storage
+    TRPCRouter --> DB
