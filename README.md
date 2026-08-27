@@ -37,6 +37,12 @@ Ledgerly is a fullstack personal finance platform designed for private expense t
 | Testing | Vitest |
 | Optional services | Resend email, AI provider, S3-compatible storage |
 
+## QA and verification
+
+Ledgerly includes automated authentication, security, analytics, and selected UI tests using Vitest and Testing Library. The project was also checked through production smoke testing on Render, including database startup, authentication, navigation, and the main dashboard flow. The QA evidence is documented in [`docs/QA_TEST_PLAN.md`](docs/QA_TEST_PLAN.md), [`docs/TEST_CASES.md`](docs/TEST_CASES.md), [`docs/BUG_REPORTS.md`](docs/BUG_REPORTS.md), and [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md).
+
+The current recorded local verification run passed `pnpm check`, `pnpm test` with 61 tests across 10 files, and `pnpm build`. These results are a snapshot of the tested scope and should not be interpreted as a guarantee that every possible input or environment has been covered.
+
 ## Repository layout
 
 ```text
