@@ -1,8 +1,12 @@
 # Ledgerly
 
-Ledgerly is a personal finance tracker for people who want a simple record of their spending and a clearer way to manage shared bills. It supports private expenses, budgets, savings goals, recurring costs, group bills, settlements, and basic financial reporting.
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Production_Ready-emerald?style=for-the-badge&logo=render)](https://ledgerly-mbcd.onrender.com)
+[![CI Status](https://img.shields.io/badge/CI-Passing-brightgreen?style=for-the-badge&logo=githubactions)](https://github.com/SithumManusha/Ledgerly/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
-The project was built as a full-stack TypeScript application. The browser client is a React/Vite app. The server uses Express and tRPC, and Drizzle ORM stores application data in PostgreSQL.
+> 🚀 **Live Production URL:** [https://ledgerly-mbcd.onrender.com](https://ledgerly-mbcd.onrender.com)
+
+Ledgerly is a fullstack personal finance platform designed for private expense tracking, multi-currency conversions, group settlement splitting, and automated receipt scanning. Built with React 19, TypeScript, Express, tRPC 11, and Supabase PostgreSQL.
 
 ## What it does
 
@@ -134,7 +138,7 @@ Read `SECURITY.md` before making the application public.
 
 ## 🚀 Live Demo & Links
 
-- **Live Application**: [https://ledgerly.onrender.com](https://ledgerly.onrender.com)
+- **Live Application**: [https://ledgerly-mbcd.onrender.com](https://ledgerly-mbcd.onrender.com)
 - **GitHub Repository**: [https://github.com/SithumManusha/Ledgerly](https://github.com/SithumManusha/Ledgerly)
 - **Developer**: [Sithum Manusha](https://github.com/SithumManusha)
 

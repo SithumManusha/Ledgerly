@@ -331,7 +331,7 @@ export function LoginDialog({
 
   const dialogDescription = {
     signin: "Enter your email and password to access your secure Ledgerly workspace.",
-    register: "Create a local Ledgerly account with a strong password.",
+    register: "Create your secure Ledgerly account with a strong password.",
     forgot: "Enter your account email and we will send a one-time password-reset link.",
     reset: "Choose a new password using the one-time link sent to your email.",
   }[mode];

@@ -126,8 +126,8 @@ export default function DashboardLayout({
               <p className="mt-1 text-xs sm:text-[11px] text-muted-foreground">Foreign exchange splitting & conversion.</p>
             </div>
             <div className="rounded-xl border border-border bg-card p-3.5 shadow-sm backdrop-blur-sm transition-all hover:border-indigo-400 hover:shadow-md">
-              <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">Secure Local</p>
-              <p className="mt-1 text-xs sm:text-[11px] text-muted-foreground">Bcrypt sessions & recovery token flow.</p>
+              <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">Bank-Grade Security</p>
+              <p className="mt-1 text-xs sm:text-[11px] text-muted-foreground">Bcrypt encrypted sessions & token recovery.</p>
             </div>
           </div>
         </div>

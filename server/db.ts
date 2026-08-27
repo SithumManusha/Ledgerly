@@ -51,11 +51,19 @@ export async function getDb() {
   }
   if (!_db && process.env.DATABASE_URL) {
     try {
-      const connUrl = process.env.DATABASE_URL;
+      let connUrl = process.env.DATABASE_URL;
       const isLocal = connUrl.includes("localhost") || connUrl.includes("127.0.0.1");
+      if (!isLocal && !connUrl.includes("search_path")) {
+        const delimiter = connUrl.includes("?") ? "&" : "?";
+        connUrl = `${connUrl}${delimiter}options=-csearch_path%3Dpublic`;
+      }
       _pool = new Pool({
         connectionString: connUrl,
         ssl: isLocal ? false : { rejectUnauthorized: false },
+        options: "-c search_path=public",
+      });
+      _pool.on("connect", (client) => {
+        client.query("SET search_path TO public;").catch(() => {});
       });
       _db = drizzle(_pool);
     } catch (error) {
