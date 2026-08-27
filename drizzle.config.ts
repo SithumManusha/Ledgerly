@@ -4,10 +4,11 @@ const connectionString = process.env.DATABASE_URL || "postgres://postgres:postgr
 
 export default defineConfig({
   schema: "./drizzle/schema.ts",
-  out: "./drizzle",
+  out: "./drizzle-pg",
   dialect: "postgresql",
   schemaFilter: ["public"],
   dbCredentials: {
     url: connectionString,
+    ssl: true,
   },
 });
