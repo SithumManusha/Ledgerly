@@ -65,6 +65,9 @@ export async function getDb() {
       _pool.on("connect", (client) => {
         client.query("SET search_path TO public;").catch(() => {});
       });
+      _pool.on("error", (err) => {
+        console.warn("[Database Pool Warning] Non-fatal idle connection error:", err.message);
+      });
       _db = drizzle(_pool);
     } catch (error) {
       console.warn("[Database] Failed to connect to PostgreSQL:", error);
