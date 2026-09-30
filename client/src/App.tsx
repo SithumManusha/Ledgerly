@@ -14,6 +14,7 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/transactions" component={Home} />
         <Route path="/budgets" component={Home} />
+        <Route path="/recurring" component={Home} />
         <Route path="/insights" component={Home} />
         <Route path="/shared" component={Home} />
         <Route path="/404" component={NotFound} />

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { BarChart3, LayoutDashboard, LogOut, Moon, PanelLeft, ReceiptText, Sun, Users, WalletCards } from "lucide-react";
+import { BarChart3, LayoutDashboard, LogOut, Moon, PanelLeft, ReceiptText, Repeat2, Sun, Users, WalletCards } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -33,6 +33,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/" },
   { icon: ReceiptText, label: "Transactions", path: "/transactions" },
   { icon: WalletCards, label: "Budgets", path: "/budgets" },
+  { icon: Repeat2, label: "Recurring", path: "/recurring" },
   { icon: BarChart3, label: "Insights", path: "/insights" },
   { icon: Users, label: "Shared Groups", path: "/shared" },
 ];

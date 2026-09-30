@@ -371,7 +371,7 @@ export default function Home() {
   useEffect(() => {
     if (alertSettingsQuery.data) setWarningThreshold(String(alertSettingsQuery.data.budgetWarningThresholdPercent));
   }, [alertSettingsQuery.data]);
-  const view = location === "/transactions" ? "transactions" : location === "/budgets" ? "budgets" : location === "/insights" ? "insights" : location === "/shared" ? "shared" : "overview";
+  const view = location === "/transactions" ? "transactions" : location === "/budgets" ? "budgets" : location === "/recurring" ? "recurring" : location === "/insights" ? "insights" : location === "/shared" ? "shared" : "overview";
 
   const recentExpenses = useMemo(() => (expensesQuery.data ?? []).slice(0, 6), [expensesQuery.data]);
   const comparisonData = useMemo(() => buildMonthOverMonthComparison(analytics?.monthlyTotals ?? []), [analytics?.monthlyTotals]);
@@ -626,8 +626,6 @@ export default function Home() {
               </CardContent>
             </Card>
             <div className="mt-6"><RecentExpenses rows={recentExpenses} onEdit={row => { setExpense({ id: row.id, amount: String(row.amount), date: row.date, description: row.description, category: row.category, aiSuggestedCategory: row.aiSuggestedCategory }); setIsExpenseDialogOpen(true); }} onDelete={id => deleteExpense.mutate({ id })} isDeleting={deleteExpense.isPending} onViewAll={() => setLocation("/transactions")} onAdd={() => { setExpense(emptyExpense()); setIsExpenseDialogOpen(true); }} /></div>
-            <div className="mt-6"><SavingsGoalPanel goal={savingsGoal} target={savingsTarget} current={savingsCurrent} targetDate={savingsDate} setTarget={setSavingsTarget} setCurrent={setSavingsCurrent} setTargetDate={setSavingsDate} onSubmit={handleSavingsGoalSubmit} onDelete={() => deleteSavingsGoal.mutate()} isSaving={saveSavingsGoal.isPending} /></div>
-            <AdvancedPlanningPanel recurringRows={recurringQuery.data ?? []} recurringDraft={recurringDraft} setRecurringDraft={setRecurringDraft} onRecurringSubmit={handleRecurringSubmit} onDeleteRecurring={id => deleteRecurring.mutate({ id })} isRecurringSaving={createRecurring.isPending || deleteRecurring.isPending} alerts={alertsQuery.data} warningThreshold={warningThreshold} setWarningThreshold={setWarningThreshold} onAlertSubmit={handleAlertSubmit} isAlertSaving={saveAlertSettings.isPending} reportStart={reportStart} setReportStart={setReportStart} reportEnd={reportEnd} setReportEnd={setReportEnd} onReportDownload={handleReportDownload} isReportLoading={reportQuery.isFetching} />
           </>
         )}
 
@@ -645,6 +643,48 @@ export default function Home() {
         )}
 
         {view === "budgets" && <BudgetsView monthLabel={monthLabel} budgetRows={budgetRows} categoryTotals={analytics?.categoryTotals ?? []} budgetProgress={budgetProgress} budgetCategory={budgetCategory} setBudgetCategory={setBudgetCategory} budgetLimit={budgetLimit} setBudgetLimit={setBudgetLimit} onSubmit={handleBudgetSubmit} isSaving={saveBudget.isPending} onDelete={id => deleteBudget.mutate({ id })} />}
+        {view === "recurring" && (
+          <>
+            <SectionHeading
+              eyebrow="Commitments & Planning"
+              title="Recurring & Subscriptions"
+              description="Model monthly subscriptions, rent, and predictable commitments before they surprise your budget."
+            />
+            <div className="space-y-6">
+              <SavingsGoalPanel
+                goal={savingsGoal}
+                target={savingsTarget}
+                current={savingsCurrent}
+                targetDate={savingsDate}
+                setTarget={setSavingsTarget}
+                setCurrent={setSavingsCurrent}
+                setTargetDate={setSavingsDate}
+                onSubmit={handleSavingsGoalSubmit}
+                onDelete={() => deleteSavingsGoal.mutate()}
+                isSaving={saveSavingsGoal.isPending}
+              />
+              <AdvancedPlanningPanel
+                recurringRows={recurringQuery.data ?? []}
+                recurringDraft={recurringDraft}
+                setRecurringDraft={setRecurringDraft}
+                onRecurringSubmit={handleRecurringSubmit}
+                onDeleteRecurring={id => deleteRecurring.mutate({ id })}
+                isRecurringSaving={createRecurring.isPending || deleteRecurring.isPending}
+                alerts={alertsQuery.data}
+                warningThreshold={warningThreshold}
+                setWarningThreshold={setWarningThreshold}
+                onAlertSubmit={handleAlertSubmit}
+                isAlertSaving={saveAlertSettings.isPending}
+                reportStart={reportStart}
+                setReportStart={setReportStart}
+                reportEnd={reportEnd}
+                setReportEnd={setReportEnd}
+                onReportDownload={handleReportDownload}
+                isReportLoading={reportQuery.isFetching}
+              />
+            </div>
+          </>
+        )}
         {view === "insights" && <InsightsView monthLabel={monthLabel} analytics={analytics} isLoading={analyticsQuery.isLoading} />}
         {view === "shared" && <SharedGroupsView />}
       </div>
