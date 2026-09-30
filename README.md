@@ -10,21 +10,16 @@ Ledgerly is a personal finance and shared-expense tracker. It gives users a sing
 
 **Repository:** [github.com/SithumManusha/Ledgerly](https://github.com/SithumManusha/Ledgerly)
 
-## Features
+## Core Architecture & Modules
 
-Ledgerly currently supports the following workflows:
+Ledgerly is structured into 6 focused modules:
 
-- Add, edit, delete, import, and export personal expenses.
-- Organise expenses by category and review monthly totals.
-- Create category budgets and track progress toward a savings goal.
-- Add recurring personal expenses.
-- Create groups for households, roommates, or small teams.
-- Split shared bills equally, by percentage, by fixed amount, or by occupancy days.
-- Review balances, record settlements, and export a shared settlement report as a PDF.
-- Review spending insights and currency conversions.
-- Scan receipts and parse statement data when the optional AI provider is configured.
-- Request password recovery by email when Resend is configured.
-- Switch between light and dark themes.
+- **Overview Dashboard (`/`):** Real-time spending breakdown with interactive category donut charts, daily rhythm previews, month-over-month trajectories, and rapid expense capture.
+- **Transactions Ledger (`/transactions`):** Full-featured financial ledger with multi-currency filtering (LKR, USD, EUR, GBP), smart receipt scanning, and two-way CSV import/export.
+- **Monthly Budgets (`/budgets`):** Granular category limit planning, real-time budget utilization health indicators, and visual progress bars.
+- **Recurring Commitments & Planning (`/recurring`):** Dedicated tracking for fixed monthly/weekly subscriptions (Netflix, rent, utilities), savings runway goal progress, and proactive budget threshold guardrails.
+- **Insights & Analytics (`/insights`):** Financial intelligence metrics including daily burn rate calculation, month-end spend projections, savings velocity, and 30-day spending rhythm distributions.
+- **Shared Groups & Bill Splitting (`/shared`):** Collaborative expense splitting for roommates, households, and trips with flexible split models (equal, percentage, fixed, occupancy days), AI-guided natural language allocation assistance, settlement matrix, and downloadable settlement PDF export.
 
 Optional services are intentionally configuration-based. The core application can run without the AI, email, storage, and OAuth integrations.
 
