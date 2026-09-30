@@ -21,7 +21,25 @@ import {
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { BarChart3, LayoutDashboard, LogOut, Moon, PanelLeft, ReceiptText, Repeat2, Sparkles, Sun, Users, WalletCards } from "lucide-react";
+import {
+  ArrowRight,
+  BarChart3,
+  FileSpreadsheet,
+  LayoutDashboard,
+  LogIn,
+  LogOut,
+  Moon,
+  PanelLeft,
+  ReceiptText,
+  Repeat2,
+  ScanLine,
+  ShieldCheck,
+  Sparkles,
+  Sun,
+  Users,
+  WalletCards,
+  Zap,
+} from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -94,6 +112,21 @@ export default function DashboardLayout({
             Portfolio-grade expense tracking, multi-currency conversion, predictive analytics, and collaborative bill splitting engineered with React 19 & tRPC.
           </p>
 
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 max-w-lg">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card/80 px-3 py-1 text-[11px] font-medium text-muted-foreground shadow-2xs backdrop-blur-sm">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Bank-Grade Bcrypt</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card/80 px-3 py-1 text-[11px] font-medium text-muted-foreground shadow-2xs backdrop-blur-sm">
+              <Zap className="h-3.5 w-3.5 text-amber-500" />
+              <span>End-to-End Type-Safe</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card/80 px-3 py-1 text-[11px] font-medium text-muted-foreground shadow-2xs backdrop-blur-sm">
+              <FileSpreadsheet className="h-3.5 w-3.5 text-sky-500" />
+              <span>CSV & PDF Export</span>
+            </div>
+          </div>
+
           <div className="mt-8 flex w-full max-w-sm flex-col gap-3">
             <Button
               onClick={() => {
@@ -101,9 +134,11 @@ export default function DashboardLayout({
                 setAuthDialogOpen(true);
               }}
               size="lg"
-              className="h-12 w-full rounded-xl bg-slate-900 text-base font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all hover:shadow-slate-900/30 dark:bg-emerald-600 dark:hover:bg-emerald-500 dark:text-white"
+              className="group h-12 w-full rounded-xl bg-slate-900 text-base font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all hover:shadow-slate-900/30 dark:bg-emerald-600 dark:hover:bg-emerald-500 dark:text-white"
             >
-              Sign in to Ledgerly
+              <LogIn className="mr-2 h-4 w-4" />
+              <span>Sign in to Ledgerly</span>
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Button>
             <button
               type="button"
@@ -111,40 +146,41 @@ export default function DashboardLayout({
                 setAuthMode("register");
                 setAuthDialogOpen(true);
               }}
-              className="py-2 text-sm font-semibold text-emerald-600 transition-colors hover:text-emerald-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded dark:text-emerald-400 dark:hover:text-emerald-300"
+              className="inline-flex items-center justify-center gap-1.5 py-2 text-sm font-semibold text-emerald-600 transition-colors hover:text-emerald-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded dark:text-emerald-400 dark:hover:text-emerald-300"
             >
-              New to Ledgerly? Create an account
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>New to Ledgerly? Create an account</span>
             </button>
           </div>
 
-          <div className="mt-12 grid w-full max-w-2xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 border-t border-border pt-6 text-left">
-            <div className="rounded-xl border border-border bg-card p-3.5 shadow-sm backdrop-blur-sm transition-all hover:border-emerald-400 hover:shadow-md">
-              <div className="flex items-center gap-2 mb-1">
-                <BarChart3 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Analytics & Rhythm</p>
+          <div className="mt-12 grid w-full max-w-3xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 border-t border-border pt-8 text-left">
+            <div className="group rounded-2xl border border-border/80 bg-card/90 p-4 shadow-xs backdrop-blur-sm transition-all hover:border-emerald-400 hover:shadow-md hover:-translate-y-0.5">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 shadow-xs dark:bg-emerald-500/20 dark:text-emerald-300 transition-transform group-hover:scale-110">
+                <BarChart3 className="h-5 w-5" />
               </div>
-              <p className="text-xs text-muted-foreground">3-month trajectories, burn rate & 30-day rhythm distributions.</p>
+              <p className="text-xs font-bold text-foreground">Analytics & Rhythm</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">3-month trajectories, daily burn rate & 30-day rhythm distributions.</p>
             </div>
-            <div className="rounded-xl border border-border bg-card p-3.5 shadow-sm backdrop-blur-sm transition-all hover:border-teal-400 hover:shadow-md">
-              <div className="flex items-center gap-2 mb-1">
-                <Repeat2 className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-                <p className="text-xs font-bold text-teal-600 dark:text-teal-400">Recurring Commitments</p>
+            <div className="group rounded-2xl border border-border/80 bg-card/90 p-4 shadow-xs backdrop-blur-sm transition-all hover:border-teal-400 hover:shadow-md hover:-translate-y-0.5">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-teal-500/10 text-teal-600 border border-teal-500/20 shadow-xs dark:bg-teal-500/20 dark:text-teal-300 transition-transform group-hover:scale-110">
+                <Repeat2 className="h-5 w-5" />
               </div>
-              <p className="text-xs text-muted-foreground">Subscription models, savings runway & budget threshold guardrails.</p>
+              <p className="text-xs font-bold text-foreground">Recurring Commitments</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Subscription models, savings runway & budget threshold guardrails.</p>
             </div>
-            <div className="rounded-xl border border-border bg-card p-3.5 shadow-sm backdrop-blur-sm transition-all hover:border-sky-400 hover:shadow-md">
-              <div className="flex items-center gap-2 mb-1">
-                <Users className="h-4 w-4 text-sky-600 dark:text-sky-400" />
-                <p className="text-xs font-bold text-sky-600 dark:text-sky-400">Group Bill Splits</p>
+            <div className="group rounded-2xl border border-border/80 bg-card/90 p-4 shadow-xs backdrop-blur-sm transition-all hover:border-sky-400 hover:shadow-md hover:-translate-y-0.5">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 border border-sky-500/20 shadow-xs dark:bg-sky-500/20 dark:text-sky-300 transition-transform group-hover:scale-110">
+                <Users className="h-5 w-5" />
               </div>
-              <p className="text-xs text-muted-foreground">Roommate settlements by occupancy or equal, with PDF export.</p>
+              <p className="text-xs font-bold text-foreground">Group Bill Splits</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Roommate settlements by occupancy or equal, with PDF export.</p>
             </div>
-            <div className="rounded-xl border border-border bg-card p-3.5 shadow-sm backdrop-blur-sm transition-all hover:border-indigo-400 hover:shadow-md">
-              <div className="flex items-center gap-2 mb-1">
-                <Sparkles className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">AI OCR & Security</p>
+            <div className="group rounded-2xl border border-border/80 bg-card/90 p-4 shadow-xs backdrop-blur-sm transition-all hover:border-violet-400 hover:shadow-md hover:-translate-y-0.5">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600 border border-violet-500/20 shadow-xs dark:bg-violet-500/20 dark:text-violet-300 transition-transform group-hover:scale-110">
+                <ScanLine className="h-5 w-5" />
               </div>
-              <p className="text-xs text-muted-foreground">Smart receipt scanning, multi-currency & Bcrypt encryption.</p>
+              <p className="text-xs font-bold text-foreground">AI OCR & Security</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Smart receipt scanning, multi-currency & Bcrypt encryption.</p>
             </div>
           </div>
         </div>
