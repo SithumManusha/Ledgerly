@@ -223,10 +223,10 @@ function DashboardLayoutContent({
             <div className="flex items-center gap-3 px-2 transition-all w-full">
               <button
                 onClick={toggleSidebar}
-                className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
+                className="h-9 w-9 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
                 aria-label="Toggle navigation"
               >
-                <PanelLeft className="h-4 w-4 text-muted-foreground" />
+                <PanelLeft className="h-5 w-5 text-muted-foreground" />
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
@@ -238,8 +238,8 @@ function DashboardLayoutContent({
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="gap-0">
-            <SidebarMenu className="px-2 py-1">
+          <SidebarContent className="gap-0 py-2">
+            <SidebarMenu className="px-2 py-1 gap-3">
               {menuItems.map(item => {
                 const isActive = location === item.path;
                 return (
@@ -248,12 +248,12 @@ function DashboardLayoutContent({
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
-                      className={`h-10 transition-all font-normal`}
+                      className="h-11 px-3 text-sm font-medium gap-3.5 transition-all rounded-lg [&>svg]:!size-[22px] [&>svg]:!shrink-0 group-data-[collapsible=icon]:!size-10 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center"
                     >
                       <item.icon
-                        className={`h-6 w-6 shrink-0 ${isActive ? "text-primary" : ""}`}
+                        className={`!size-[22px] shrink-0 transition-colors ${isActive ? "text-primary stroke-[2.2]" : "text-muted-foreground stroke-[1.8]"}`}
                       />
-                      <span>{item.label}</span>
+                      <span className="text-[14px]">{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -261,15 +261,15 @@ function DashboardLayoutContent({
             </SidebarMenu>
           </SidebarContent>
 
-          <SidebarFooter className="gap-2 p-3">
+          <SidebarFooter className="gap-3 p-3">
             <button
               type="button"
               onClick={() => toggleTheme?.()}
               aria-label={getThemeToggleLabel(theme)}
               aria-pressed={theme === "dark"}
-              className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring group-data-[collapsible=icon]:justify-center"
+              className="flex w-full items-center gap-3.5 rounded-lg px-3 py-2.5 text-left text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring group-data-[collapsible=icon]:justify-center"
             >
-              {theme === "dark" ? <Sun className="h-4 w-4 shrink-0" /> : <Moon className="h-4 w-4 shrink-0" />}
+              {theme === "dark" ? <Sun className="h-5 w-5 shrink-0" /> : <Moon className="h-5 w-5 shrink-0" />}
               <span className="group-data-[collapsible=icon]:hidden">{theme === "dark" ? "Light mode" : "Dark mode"}</span>
             </button>
             <DropdownMenu>
