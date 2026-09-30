@@ -560,7 +560,7 @@ export default function Home() {
               <WalletCards className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-lg font-semibold tracking-tight text-slate-950">Good morning, {user?.name?.split(" ")[0] || "there"}.</p>
+              <h1 className="text-lg font-semibold tracking-tight text-slate-950 dark:text-white">Ledgerly Workspace</h1>
               <p className="text-sm text-slate-500">{APP_TAGLINE}</p>
             </div>
           </div>
