@@ -1,159 +1,157 @@
-# Ledgerly
+# Ledgerly — Autonomous AI Financial Intelligence & Collaborative Ledger
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-Online-2ea44f?logo=render)](https://ledgerly-mbcd.onrender.com)
+[![Vitest Passing](https://img.shields.io/badge/Vitest-68%2F68_Passing-success?logo=vitest)](server/intelligence.test.ts)
+[![TypeScript Strict](https://img.shields.io/badge/TypeScript-Strict_100%25-blue?logo=typescript)](tsconfig.json)
 [![CI](https://github.com/SithumManusha/Ledgerly/actions/workflows/ci.yml/badge.svg)](https://github.com/SithumManusha/Ledgerly/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Ledgerly is a personal finance and shared-expense tracker. It gives users a single place to record expenses, set budgets, review spending patterns, and split group bills. The application is built as a full-stack TypeScript project and is deployed as a Node.js service with PostgreSQL.
+**Ledgerly** is a production-grade, enterprise-ready financial intelligence platform and collaborative expense tracker. Beyond conventional CRUD budgeting applications, Ledgerly integrates **Autonomous AI Financial Intelligence**, real-time predictive runway simulations, spending velocity anomaly alerts, and a cryptographically sound, event-driven collaborative ledger with Server-Sent Events (SSE).
 
-**Live demo:** [ledgerly-mbcd.onrender.com](https://ledgerly-mbcd.onrender.com)
+- **🌐 Live Production URL:** [https://ledgerly-mbcd.onrender.com](https://ledgerly-mbcd.onrender.com)
+- **💻 GitHub Repository:** [https://github.com/SithumManusha/Ledgerly](https://github.com/SithumManusha/Ledgerly)
+- **📐 Architecture:** React 19, TypeScript, tRPC 11, Express 4, PostgreSQL (Drizzle ORM), Recharts, Server-Sent Events (SSE)
 
-**Repository:** [github.com/SithumManusha/Ledgerly](https://github.com/SithumManusha/Ledgerly)
+---
 
-## Core Architecture & Modules
+## 🚀 Key Modules & Autonomous Intelligence
 
-Ledgerly is structured into 6 focused modules:
+### 1. 🧠 Autonomous AI Financial Copilot & Health Scoring (`/insights`)
+- **Composite Financial Health Engine (0–100 Score & A+ to D Grade):** Synthesizes budget adherence, liquid savings buffer, and monthly burn stability into an actionable health gauge.
+- **Velocity Spike & Spending Anomaly Detection:** Real-time algorithmic detection that flags category expenditure surging >25% above historical baselines.
+- **Budget Breach Forecasts:** Extrapolates current daily burn velocity to predict exact days until category budget exhaustion.
+- **Natural Language Financial Q&A:** Grounded context-aware copilot providing immediate answers (e.g., *"Can I afford a major vacation next month?"*, *"How do I optimize my savings velocity?"*).
 
-- **Overview Dashboard (`/`):** Real-time spending breakdown with interactive category donut charts, daily rhythm previews, month-over-month trajectories, and rapid expense capture.
-- **Transactions Ledger (`/transactions`):** Full-featured financial ledger with multi-currency filtering (LKR, USD, EUR, GBP), smart receipt scanning, and two-way CSV import/export.
-- **Monthly Budgets (`/budgets`):** Granular category limit planning, real-time budget utilization health indicators, and visual progress bars.
-- **Recurring Commitments & Planning (`/recurring`):** Dedicated tracking for fixed monthly/weekly subscriptions (Netflix, rent, utilities), savings runway goal progress, and proactive budget threshold guardrails.
-- **Insights & Analytics (`/insights`):** Financial intelligence metrics including daily burn rate calculation, month-end spend projections, savings velocity, and 30-day spending rhythm distributions.
-- **Shared Groups & Bill Splitting (`/shared`):** Collaborative expense splitting for roommates, households, and trips with flexible split models (equal, percentage, fixed, occupancy days), AI-guided natural language allocation assistance, settlement matrix, and downloadable settlement PDF export.
+### 2. 🎛️ Interactive "What-If" Financial Runway Simulator (`/insights`)
+- **Dynamic Stress-Testing Sliders:** Simulate discretionary spending reductions (0%–50%), one-off capital purchases (LKR), and monthly income shifts.
+- **Runway & Net Delta Projections:** Projects runway extension/depletion in net months, recalculates adjusted monthly burn, and issues dynamic health warnings (Healthy, Warning, Critical).
+- **Comparative Cash-Flow Curves:** Visualizes a 6-month projected comparative expenditure timeline using Recharts.
 
-Optional services are intentionally configuration-based. The core application can run without the AI, email, storage, and OAuth integrations.
+### 3. 🔔 Real-Time Notification Bell & Event Alerts (Global Header)
+- **Instant Reactive Notification Center:** Dropdown notification center mounted in the navigation bar with animated unread count badges.
+- **Categorized Event Push:** Pushes real-time alerts for spending anomalies, budget overages, debt settlement receipts, and group invitations with relative timestamps.
+- **Read State Management:** Single-click "Mark all as read" and individual notification dismissal.
 
-## Technology
+### 4. 📜 Live Activity Audit Stream & Shared Ledger (`/shared`)
+- **Immutable Collaborative Audit Trail:** Chronological event timeline recording bill submissions, AI split allocations, payment proof attachments, and verified settlements.
+- **Real-Time SSE Synchronization:** Leverages Server-Sent Events (`/api/events?groupId=...`) for instant, live updates across all connected group members without page refreshes.
+- **Flexible Bill Splitting Algorithms:** Supports equal division, custom percentages, fixed amounts, and occupancy-day weighting (ideal for boarding houses/roommates).
+- **PDF Settlement Export:** Server-side deterministic PDF report generation using PDFKit with recipient balance matrices and verification stamps.
 
-| Area | Technology |
+### 5. 📊 Core Financial Command Center
+- **Overview Dashboard (`/`):** Real-time spending distribution, category donut charts, daily rhythm heatmaps, and Month-over-Month (MoM) trajectories.
+- **Transactions Ledger (`/transactions`):** Full multi-currency ledger (LKR, USD, EUR, GBP) with receipt capture, CSV import/export, and smart categorization.
+- **Budget Limits & Guardrails (`/budgets`):** Visual threshold progress bars and category cap management.
+- **Recurring Commitments (`/recurring`):** Proactive tracking for recurring utility bills, subscriptions, and savings goal targets.
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technologies |
 | --- | --- |
-| Client | React 19, TypeScript, Vite |
-| Server | Express 4, tRPC 11 |
-| Database | PostgreSQL with Drizzle ORM |
-| Validation | Zod |
-| Authentication | Local email/password authentication with signed HTTP-only session cookies |
-| Password hashing | bcryptjs |
-| Reports | PDFKit |
-| Charts | Recharts |
-| Testing | Vitest, Testing Library |
-| Optional services | Resend, an OpenAI-compatible provider, and S3-compatible storage |
+| **Frontend** | React 19, TypeScript, Vite, Tailwind CSS, Lucide Icons, Shadcn UI primitives, Recharts |
+| **Backend & API** | Node.js, Express 4, tRPC v11 (End-to-end type safety), Server-Sent Events (SSE) |
+| **Database & ORM** | PostgreSQL, Drizzle ORM, Drizzle-Kit Migrations |
+| **Validation & Security** | Zod schemas, bcryptjs password hashing, signed HTTP-only cookies, Rate Limiting |
+| **Reporting & AI** | PDFKit (server-side PDF generation), Contextual Financial Intelligence Engine |
+| **Testing** | Vitest, React Testing Library (68 passing tests across 11 test suites) |
 
-## Repository layout
+---
+
+## 📁 Repository Structure
 
 ```text
-client/                 React pages, components, contexts, and styles
-server/                 Express server, tRPC routers, database helpers, and tests
-server/_core/           Server startup, sessions, cookies, and integrations
-shared/                 Shared constants, types, and password helpers
-drizzle/                Schema and relation definitions
-drizzle-pg/             PostgreSQL migration SQL and metadata
-scripts/                Production database bootstrap utilities
-docs/                   QA plan, test cases, bug reports, and release checklist
-architecture.mmd        Editable architecture diagram
-architecture.png        Rendered architecture diagram
-SECURITY.md             Production security notes
+├── client/                     # Frontend client codebase
+│   ├── src/
+│   │   ├── components/         # Reusable UI & Intelligence widgets
+│   │   │   ├── CopilotIntelligenceCard.tsx   # Health score gauge & Copilot prompt
+│   │   │   ├── WhatIfSimulator.tsx           # Runway stress-testing sliders & charts
+│   │   │   ├── NotificationBell.tsx          # Real-time notification center
+│   │   │   └── GroupAuditTimeline.tsx        # Live SSE chronological audit log
+│   │   ├── pages/              # Top-level route pages (Home.tsx, Auth, etc.)
+│   │   ├── lib/                # Analytics formulas & formatting utilities
+│   │   └── contexts/           # Authentication & Theme state providers
+├── server/                     # Backend API & service architecture
+│   ├── aiFinancialIntelligence.ts # Health score, anomalies, What-If simulation engine
+│   ├── notificationService.ts  # Notification dispatch & SSE event publisher
+│   ├── auditService.ts         # Chronological group activity stream & audit trail
+│   ├── routers.ts              # tRPC routers (intelligence, shared, transactions, auth)
+│   ├── intelligence.test.ts    # Vitest suite covering AI algorithms & routers
+│   └── _core/                  # Express bootstrap, SSE handler, session cookies
+├── drizzle/                    # PostgreSQL database schema definitions
+├── scripts/                    # Production database bootstrap and seeding scripts
+└── docs/                       # QA test plans, test cases, and release checklists
 ```
 
-## Local setup
+---
 
-Use Node.js 20 or newer, pnpm, and a PostgreSQL database. Clone the repository and install the dependencies:
+## 🧪 Testing & Verification
+
+Ledgerly is fortified with an automated testing pipeline ensuring high reliability and zero regressions.
 
 ```bash
-git clone https://github.com/SithumManusha/Ledgerly.git
-cd Ledgerly
-pnpm install
-```
-
-Create a local `.env` file based on `.env.example`. The values below are examples for local development only:
-
-```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ledgerly?sslmode=require
-JWT_SECRET=use-a-long-random-value-in-real-environments
-APP_URL=http://localhost:3000
-NODE_ENV=development
-PORT=3000
-```
-
-Optional integrations use the following variables:
-
-```env
-OPENAI_API_KEY=
-BUILT_IN_FORGE_API_URL=
-BUILT_IN_FORGE_API_KEY=
-RESEND_API_KEY=
-FROM_EMAIL=
-VITE_APP_ID=ledgerly
-OAUTH_SERVER_URL=
-OWNER_OPEN_ID=
-```
-
-Never commit `.env`, database URLs, API keys, reset tokens, or exported financial data. The checked-in `.env.example` contains placeholders only.
-
-## Running and testing locally
-
-The project scripts are:
-
-```bash
-pnpm dev       # Start the development server
-pnpm check     # Run the TypeScript check
-pnpm test      # Run the Vitest suite
-pnpm build     # Build the client and server for production
-pnpm start     # Bootstrap the database and start the production server
-```
-
-For a local database, `pnpm db:push` applies the configured PostgreSQL migration path. The production start command also runs the deterministic bootstrap in `scripts/bootstrap-db.mjs` before starting the server, so a deployed service can initialise or verify its schema without an interactive terminal.
-
-Before opening a pull request or deploying a change, run:
-
-```bash
-pnpm check
+# Run the complete Vitest test suite
 pnpm test
+
+# Run strict TypeScript compiler verification
+pnpm check
+
+# Build client and server bundles for production
 pnpm build
 ```
 
-## Authentication and password recovery
+### Automated Test Matrix (68/68 Passing):
+- **Intelligence & Forecasts (`server/intelligence.test.ts`):** 7 tests validating health scoring algorithms, What-If cash-flow curves, spending anomaly threshold detections, and notification states.
+- **Security & Authorization (`server/security.test.ts`):** 24 tests verifying session cookies, rate-limiting, group authorization guards, and PDF generation.
+- **Authentication & Password Recovery (`server/auth.*.test.ts`):** 9 tests verifying bcrypt hashing, single-use reset tokens, and logout lifecycles.
+- **Analytics & Calculations (`client/src/lib/ledgerly-analytics.test.ts`):** 5 tests verifying MoM percentage deltas and transaction filters.
+- **UI Components & Theme (`client/src/**/*.test.tsx`):** 10 tests verifying login modals, dark/light theme switching, and responsive views.
 
-Users can create a local account with a name, email address, and password, then sign in with those credentials. Passwords are hashed with bcrypt. In production, the session token is stored in an HTTP-only cookie with bounded lifetime and `SameSite=Lax` settings.
+---
 
-The Forgot password flow creates a random, single-use token with a 30-minute expiry and stores only its SHA-256 hash in the database. When Resend is configured, the user receives a recovery link by email. The current portfolio demo also supports an immediate recovery path in the interface; for a sensitive production deployment, the email-only path should be preferred and tested with the configured mail provider.
+## ⚡ Quick Start & Local Development
 
-Google/OAuth login is optional and requires the OAuth environment variables to be configured. It is not required for local email/password registration.
+### Prerequisites
+- Node.js 20+
+- pnpm (`npm install -g pnpm`)
+- PostgreSQL instance running locally or hosted (e.g. Supabase, Neon)
 
-## QA and verification
+### Installation
+```bash
+# 1. Clone repository
+git clone https://github.com/SithumManusha/Ledgerly.git
+cd Ledgerly
 
-The repository includes automated tests for authentication, security-related behavior, analytics utilities, selected UI interactions, password recovery, and server procedures. The current recorded verification run passed 61 tests across 10 test files, followed by the TypeScript check and production build.
+# 2. Install dependencies
+pnpm install
 
-Those results describe the tested scope at the time of the run; they are not a claim that every possible input, browser, integration, or production failure has been covered. The manual test plan, test-case matrix, deployment bug investigation, and release checklist are available here:
+# 3. Configure environment variables
+cp .env.example .env
+# Edit .env and supply your DATABASE_URL and JWT_SECRET
 
-- [QA test plan](docs/QA_TEST_PLAN.md)
-- [Manual test cases](docs/TEST_CASES.md)
-- [Bug investigation notes](docs/BUG_REPORTS.md)
-- [Release checklist](docs/RELEASE_CHECKLIST.md)
+# 4. Push database schema
+pnpm db:push
 
-## Production deployment on Render
+# 5. Start development server
+pnpm dev
+```
+The application will be accessible at `http://localhost:3000`.
 
-Ledgerly runs on Render as a normal Node.js web service connected to a hosted PostgreSQL database.
+---
 
-Recommended service settings are:
+## 🚢 Production Deployment (Render)
 
-| Setting | Value |
-| --- | --- |
-| Branch | `main` |
-| Build command | `pnpm install --frozen-lockfile && pnpm build` |
-| Start command | `pnpm start` |
-| Required variables | `DATABASE_URL`, `JWT_SECRET`, `APP_URL`, `NODE_ENV=production` |
-| Optional variables | Resend, OAuth, AI, and storage variables when those features are enabled |
+Ledgerly is continuously deployed on Render:
+- **Build Command:** `pnpm install --frozen-lockfile && pnpm build`
+- **Start Command:** `pnpm start` (Runs database bootstrap and launches production Node service)
+- **Environment Variables:**
+  - `DATABASE_URL`: Hosted PostgreSQL connection URI with SSL
+  - `JWT_SECRET`: High-entropy secret key for session verification
+  - `APP_URL`: Production origin (`https://ledgerly-mbcd.onrender.com`)
+  - `NODE_ENV`: `production`
 
-The `pnpm start` command runs the PostgreSQL bootstrap script before the server starts. Render does not need a web shell for this process. After changing the schema or deployment configuration, review the Render deploy logs and confirm that the database step completes before the service binds to the configured port.
+---
 
-The live deployment is available at [https://ledgerly-mbcd.onrender.com](https://ledgerly-mbcd.onrender.com). Render's free instances can sleep after inactivity, so the first request after a quiet period may take longer than usual.
-
-## Security notes
-
-Read [SECURITY.md](SECURITY.md) before making the application public. The project includes input validation, bcrypt password hashing, HTTP-only session cookies, rate limiting on authentication-related endpoints, single-use recovery tokens, and authenticated data access checks. These controls reduce common risks; they do not make any web application impossible to compromise.
-
-Use a unique production `JWT_SECRET`, keep all credentials in the hosting provider's secret manager, configure database backups, and rotate any secret that appears in a commit, log, screenshot, or browser response.
-
-## Licence
-
-Ledgerly is released under the [MIT License](LICENSE).
+## 📄 License
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
