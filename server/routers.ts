@@ -75,6 +75,9 @@ import { broadcastGroupEvent, broadcastUserEvent } from "./realtimeEvents";
 import { sendEmail, buildBudgetAlertEmail, buildGroupBillAddedEmail, buildPasswordResetEmail } from "./emailService";
 import { ENV } from "./_core/env";
 import { SupportedCurrency, SUPPORTED_CURRENCIES } from "../drizzle/schema";
+import { analyzeFinancialHealth, runWhatIfSimulation, queryFinancialCopilot } from "./aiFinancialIntelligence";
+import { getUserNotifications, getUnreadNotificationCount, markNotificationAsRead, markAllNotificationsAsRead, createNotification } from "./notificationService";
+import { getGroupActivities, logGroupActivity } from "./auditService";
 
 const categoryEnum = z.enum(EXPENSE_CATEGORIES);
 const descriptionSchema = z.string().trim().min(2).max(240);
@@ -1125,6 +1128,12 @@ Return strict JSON matching the schema.`,
         await deleteRecurringSharedBill(input.recurringId);
         return { success: true };
       }),
+    getActivityStream: protectedProcedure
+      .input(z.object({ groupId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        await requireSharedGroup(ctx.user.id, input.groupId);
+        return getGroupActivities(input.groupId);
+      }),
   }),
   analytics: router({
     dashboard: protectedProcedure
@@ -1203,6 +1212,108 @@ Return strict JSON matching the schema.`,
         to: z.enum(SUPPORTED_CURRENCIES),
       }))
       .mutation(async ({ input }) => convertCurrency(input.amountCents, input.from, input.to)),
+  }),
+  intelligence: router({
+    getHealthAndForecasts: protectedProcedure
+      .input(z.object({ monthKey: monthSchema.optional() }).optional())
+      .query(async ({ ctx, input }) => {
+        const monthKey = input?.monthKey ?? DEFAULT_MONTH_KEY;
+        const [userExpenses, userBudgets, userRecurring, savingsGoal] = await Promise.all([
+          listExpenses(ctx.user.id),
+          listBudgets(ctx.user.id, monthKey),
+          listRecurringExpenses(ctx.user.id),
+          getSavingsGoal(ctx.user.id),
+        ]);
+
+        const monthRows = userExpenses.filter(e => e.transactionDate.toISOString().slice(0, 7) === monthKey);
+        const budgetsMapped = userBudgets.map(b => ({ category: b.category, amountCents: b.limitCents }));
+        const recurringMapped = userRecurring.map(r => ({ amountCents: r.amountCents }));
+
+        const now = new Date();
+        const currentYear = Number(monthKey.slice(0, 4));
+        const currentMonthIndex = Number(monthKey.slice(5, 7)) - 1;
+        const daysInMonth = new Date(currentYear, currentMonthIndex + 1, 0).getDate();
+        const currentDay = now.getFullYear() === currentYear && now.getMonth() === currentMonthIndex ? Math.max(1, now.getDate()) : daysInMonth;
+
+        const health = analyzeFinancialHealth({
+          expenses: monthRows,
+          budgets: budgetsMapped,
+          recurringExpenses: recurringMapped,
+          savingsBalanceCents: savingsGoal?.targetCents ?? 52000000,
+          daysInMonth,
+          currentDay,
+        });
+
+        return health;
+      }),
+
+    simulateWhatIf: protectedProcedure
+      .input(z.object({
+        discretionaryCutPct: z.number().min(0).max(80),
+        majorPurchaseCents: z.number().min(0),
+        monthlyIncomeChangeCents: z.number(),
+        monthKey: monthSchema.optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const monthKey = input.monthKey ?? DEFAULT_MONTH_KEY;
+        const [userExpenses, savingsGoal] = await Promise.all([
+          listExpenses(ctx.user.id),
+          getSavingsGoal(ctx.user.id),
+        ]);
+
+        const monthRows = userExpenses.filter(e => e.transactionDate.toISOString().slice(0, 7) === monthKey);
+        const totalSpendCents = monthRows.reduce((sum, e) => sum + e.amountCents, 0);
+        const baselineMonthlyBurnCents = totalSpendCents > 0 ? totalSpendCents : 22750000;
+        const savingsBalanceCents = savingsGoal?.targetCents ?? 52000000;
+
+        return runWhatIfSimulation({
+          input: {
+            discretionaryCutPct: input.discretionaryCutPct,
+            majorPurchaseCents: input.majorPurchaseCents,
+            monthlyIncomeChangeCents: input.monthlyIncomeChangeCents,
+          },
+          baselineMonthlyBurnCents,
+          savingsBalanceCents,
+        });
+      }),
+
+    askCopilot: protectedProcedure
+      .input(z.object({ prompt: z.string().trim().min(1).max(500) }))
+      .mutation(async ({ ctx, input }) => {
+        const [userExpenses, userBudgets, savingsGoal] = await Promise.all([
+          listExpenses(ctx.user.id),
+          listBudgets(ctx.user.id, DEFAULT_MONTH_KEY),
+          getSavingsGoal(ctx.user.id),
+        ]);
+
+        const totalSpendCents = userExpenses.reduce((sum, e) => sum + e.amountCents, 0);
+        const totalBudgetCents = userBudgets.reduce((sum, b) => sum + b.limitCents, 0);
+        const savingsCents = savingsGoal?.targetCents ?? 52000000;
+
+        const contextSummary = `User Total Recorded Expenses: LKR ${(totalSpendCents / 100).toLocaleString()}; Monthly Budget: LKR ${(totalBudgetCents / 100).toLocaleString()}; Savings Reserves: LKR ${(savingsCents / 100).toLocaleString()}; Active categories: ${userBudgets.map(b => b.category).join(", ")}.`;
+
+        const answer = await queryFinancialCopilot(input.prompt, contextSummary);
+        return { answer };
+      }),
+  }),
+  notifications: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const notifications = getUserNotifications(ctx.user.id);
+      const unreadCount = getUnreadNotificationCount(ctx.user.id);
+      return { notifications, unreadCount };
+    }),
+
+    markAsRead: protectedProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const success = markNotificationAsRead(ctx.user.id, input.id);
+        return { success };
+      }),
+
+    markAllAsRead: protectedProcedure.mutation(async ({ ctx }) => {
+      const success = markAllNotificationsAsRead(ctx.user.id);
+      return { success };
+    }),
   }),
 });
 

@@ -84,6 +84,10 @@ import {
   formatComparison,
   type TransactionFilters,
 } from "@/lib/ledgerly-analytics";
+import { NotificationBell } from "@/components/NotificationBell";
+import { WhatIfSimulator } from "@/components/WhatIfSimulator";
+import { CopilotIntelligenceCard } from "@/components/CopilotIntelligenceCard";
+import { GroupAuditTimeline } from "@/components/GroupAuditTimeline";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const currentMonth = () => new Date().toISOString().slice(0, 7);
@@ -565,11 +569,12 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <NotificationBell />
             <div className="hidden text-right sm:block">
-              <p className="text-sm font-medium text-slate-800">{user?.name || "Your account"}</p>
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{user?.name || "Your account"}</p>
               <p className="text-xs text-slate-500">Private workspace</p>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white">{initials(user?.name)}</div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white shadow-sm">{initials(user?.name)}</div>
           </div>
         </header>
 
@@ -943,7 +948,85 @@ function BudgetsView({ monthLabel, budgetRows, categoryTotals, budgetProgress, b
 
 function InsightsView({ monthLabel, analytics, isLoading }: { monthLabel: string; analytics: any; isLoading: boolean }) {
   const summary = analytics?.summary;
-  return <><SectionHeading eyebrow="Patterns" title="Insights" description={`Understand how your spending moves through ${monthLabel}. These metrics and charts update from your own entries.`} /><div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Card className="border-0 bg-white shadow-[0_10px_30px_rgba(25,35,25,0.05)]"><CardHeader className="pb-2"><CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500">Daily burn rate</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-slate-900">{formatMoney(summary?.dailyBurnRateCents ?? 0)}</div><p className="mt-1 text-xs text-slate-500">Average spent per day over {summary?.daysElapsed ?? 1} days</p></CardContent></Card><Card className="border-0 bg-white shadow-[0_10px_30px_rgba(25,35,25,0.05)]"><CardHeader className="pb-2"><CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500">Projected month-end</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-slate-900">{formatMoney(summary?.projectedMonthEndCents ?? 0)}</div><p className="mt-1 text-xs text-slate-500">Estimated total for all {summary?.daysInMonth ?? 30} days</p></CardContent></Card><Card className="border-0 bg-white shadow-[0_10px_30px_rgba(25,35,25,0.05)]"><CardHeader className="pb-2"><CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500">Savings pace</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-emerald-600">{summary?.budgetTotalCents ? formatMoney(Math.max(0, summary.budgetTotalCents - (summary?.projectedMonthEndCents ?? 0))) : "No budget set"}</div><p className="mt-1 text-xs text-slate-500">Projected buffer under total monthly limits</p></CardContent></Card><Card className="border-0 bg-white shadow-[0_10px_30px_rgba(25,35,25,0.05)]"><CardHeader className="pb-2"><CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500">Budget utilization</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-slate-900">{summary?.budgetTotalCents ? `${Math.round((summary.budgetSpentCents / summary.budgetTotalCents) * 100)}%` : "No limits"}</div><p className="mt-1 text-xs text-slate-500">{summary?.budgetTotalCents ? `${formatMoney(summary.budgetSpentCents)} of ${formatMoney(summary.budgetTotalCents)}` : "Set limits in Budgets tab"}</p></CardContent></Card></div><div className="grid gap-6 lg:grid-cols-2"><Card className="border-0 bg-white shadow-[0_10px_30px_rgba(25,35,25,0.05)]"><CardHeader><CardTitle className="text-base text-slate-900">Category breakdown</CardTitle><p className="mt-1 text-xs text-slate-500">Where your money went this month</p></CardHeader><CardContent className="h-[340px]">{isLoading ? <LoadingState /> : analytics?.categoryTotals?.length ? <CategoryPie data={analytics.categoryTotals} /> : <EmptyChart title="No data to visualize" detail="Add expenses and your category mix will appear here." />}</CardContent></Card><Card className="border-0 bg-white shadow-[0_10px_30px_rgba(25,35,25,0.05)]"><CardHeader><CardTitle className="text-base text-slate-900">Daily rhythm</CardTitle><p className="mt-1 text-xs text-slate-500">Spending totals across the month</p></CardHeader><CardContent className="h-[340px] pt-5">{isLoading ? <LoadingState /> : analytics?.dailyTotals?.length ? <ResponsiveContainer width="100%" height="100%"><BarChart data={analytics.dailyTotals} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}><CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} /><XAxis dataKey="date" tickFormatter={value => value.slice(8)} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} /><YAxis tickFormatter={value => `${Math.round(value / 1000)}k`} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} /><Tooltip formatter={(value: number) => formatMoney(value)} labelFormatter={value => `Date: ${value}`} /><Bar dataKey="totalCents" fill="#10b981" radius={[6, 6, 0, 0]} /></BarChart></ResponsiveContainer> : <EmptyChart title="No daily rhythm yet" detail="Your daily spending will become visible here." />}</CardContent></Card></div></>;
+  return (
+    <>
+      <SectionHeading eyebrow="Patterns" title="Insights" description={`Understand how your spending moves through ${monthLabel}. These metrics and charts update from your own entries.`} />
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-0 bg-white shadow-[0_10px_30px_rgba(25,35,25,0.05)]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500">Daily burn rate</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-900">{formatMoney(summary?.dailyBurnRateCents ?? 0)}</div>
+            <p className="mt-1 text-xs text-slate-500">Average spent per day over {summary?.daysElapsed ?? 1} days</p>
+          </CardContent>
+        </Card>
+        <Card className="border-0 bg-white shadow-[0_10px_30px_rgba(25,35,25,0.05)]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500">Projected month-end</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-900">{formatMoney(summary?.projectedMonthEndCents ?? 0)}</div>
+            <p className="mt-1 text-xs text-slate-500">Estimated total for all {summary?.daysInMonth ?? 30} days</p>
+          </CardContent>
+        </Card>
+        <Card className="border-0 bg-white shadow-[0_10px_30px_rgba(25,35,25,0.05)]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500">Savings pace</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-emerald-600">{summary?.budgetTotalCents ? formatMoney(Math.max(0, summary.budgetTotalCents - (summary?.projectedMonthEndCents ?? 0))) : "No budget set"}</div>
+            <p className="mt-1 text-xs text-slate-500">Projected buffer under total monthly limits</p>
+          </CardContent>
+        </Card>
+        <Card className="border-0 bg-white shadow-[0_10px_30px_rgba(25,35,25,0.05)]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500">Budget utilization</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-900">{summary?.budgetTotalCents ? `${Math.round((summary.budgetSpentCents / summary.budgetTotalCents) * 100)}%` : "No limits"}</div>
+            <p className="mt-1 text-xs text-slate-500">{summary?.budgetTotalCents ? `${formatMoney(summary.budgetSpentCents)} of ${formatMoney(summary.budgetTotalCents)}` : "Set limits in Budgets tab"}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="border-0 bg-white shadow-[0_10px_30px_rgba(25,35,25,0.05)]">
+          <CardHeader>
+            <CardTitle className="text-base text-slate-900">Category breakdown</CardTitle>
+            <p className="mt-1 text-xs text-slate-500">Where your money went this month</p>
+          </CardHeader>
+          <CardContent className="h-[340px]">
+            {isLoading ? <LoadingState /> : analytics?.categoryTotals?.length ? <CategoryPie data={analytics.categoryTotals} /> : <EmptyChart title="No data to visualize" detail="Add expenses and your category mix will appear here." />}
+          </CardContent>
+        </Card>
+        <Card className="border-0 bg-white shadow-[0_10px_30px_rgba(25,35,25,0.05)]">
+          <CardHeader>
+            <CardTitle className="text-base text-slate-900">Daily rhythm</CardTitle>
+            <p className="mt-1 text-xs text-slate-500">Spending totals across the month</p>
+          </CardHeader>
+          <CardContent className="h-[340px] pt-5">
+            {isLoading ? <LoadingState /> : analytics?.dailyTotals?.length ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={analytics.dailyTotals} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis dataKey="date" tickFormatter={value => value.slice(8)} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                  <YAxis tickFormatter={value => `${Math.round(value / 1000)}k`} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                  <Tooltip formatter={(value: number) => formatMoney(value)} labelFormatter={value => `Date: ${value}`} />
+                  <Bar dataKey="totalCents" fill="#10b981" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : <EmptyChart title="No daily rhythm yet" detail="Your daily spending will become visible here." />}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-8 space-y-8">
+        <CopilotIntelligenceCard />
+        <WhatIfSimulator />
+      </div>
+    </>
+  );
 }
 
 function EmptyState({ title, detail, action }: { title: string; detail: string; action?: ReactNode }) { return <div className="flex flex-col items-center justify-center py-10 text-center"><div className="mb-3 rounded-2xl bg-slate-100 p-3 text-slate-400"><CalendarDays className="h-5 w-5" /></div><p className="text-sm font-medium text-slate-700">{title}</p><p className="mt-1 max-w-xs text-xs leading-5 text-slate-500">{detail}</p>{action}</div>; }
@@ -1155,7 +1238,8 @@ function SharedGroupsView() {
       {!activeGroupId ? (
         <EmptyState title="No shared groups yet" detail="Create a group above for your roommates, family, or travel partners to start splitting bills." />
       ) : (
-        <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <div className="space-y-6">
+          <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-6">
             <Card className="border-0 bg-white shadow-[0_10px_30px_rgba(25,35,25,0.05)]">
               <CardHeader>
@@ -1566,7 +1650,9 @@ function SharedGroupsView() {
             </Card>
           </div>
         </div>
-      )}
+        <GroupAuditTimeline groupId={activeGroupId} />
+      </div>
+    )}
     </div>
   );
 }
