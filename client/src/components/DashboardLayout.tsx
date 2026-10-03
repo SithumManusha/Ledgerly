@@ -72,12 +72,20 @@ export default function DashboardLayout({
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
   const { loading, user } = useAuth();
+  const [location] = useLocation();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"signin" | "register">("signin");
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
   }, [sidebarWidth]);
+
+  useEffect(() => {
+    if (location === "/login" || location.startsWith("/login")) {
+      setAuthMode("signin");
+      setAuthDialogOpen(true);
+    }
+  }, [location]);
 
   useEffect(() => {
     const handleOpenLogin = () => {
@@ -94,7 +102,9 @@ export default function DashboardLayout({
     return <DashboardLayoutSkeleton />
   }
 
-  if (!user) {
+  const isLoginRoute = location === "/login" || location.startsWith("/login");
+
+  if (!user || isLoginRoute) {
     return (
       <div className="relative flex min-h-screen flex-col items-center justify-center bg-background px-4 py-12 text-foreground overflow-hidden transition-colors duration-300">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-500/15 via-slate-500/5 to-transparent pointer-events-none dark:from-emerald-600/20 dark:via-background dark:to-background" />

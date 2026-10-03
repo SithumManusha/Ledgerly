@@ -18,6 +18,7 @@ function Router() {
         <Route path="/copilot" component={Home} />
         <Route path="/insights" component={Home} />
         <Route path="/shared" component={Home} />
+        <Route path="/login" component={() => null} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>
