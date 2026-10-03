@@ -116,7 +116,7 @@ export async function renderSettlementReportPdf(input: SettlementReportInput) {
     } else {
       input.settlements.forEach(settlement => {
         const detail = [settlement.status, settlement.paymentMethod, settlement.referenceNote].filter((value): value is string => Boolean(value)).map(value => cleanText(value)).join(" · ");
-        document.font("Helvetica").fillColor("#334155").text(`Members #${settlement.fromMemberId} → #${settlement.toMemberId} · ${formatMoney(settlement.amountCents, currency)} · ${detail || "No additional details"}`);
+        document.font("Helvetica").fillColor("#334155").text(`Members #${settlement.fromMemberId} to #${settlement.toMemberId} · ${formatMoney(settlement.amountCents, currency)} · ${detail || "No additional details"}`);
         document.moveDown(0.25);
       });
     }
