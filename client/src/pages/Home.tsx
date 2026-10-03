@@ -915,7 +915,45 @@ function RecentExpenses({
 }
 
 function CategoryPie({ data }: { data: Array<{ category: string; totalCents: number }> }) {
-  return <div className="flex h-full flex-col gap-4 sm:flex-row sm:items-center"><div className="h-[210px] min-w-0 flex-1"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={data} dataKey="totalCents" nameKey="category" innerRadius={58} outerRadius={82} paddingAngle={3}>{data.map(item => <Cell key={item.category} fill={getCategoryColor(item.category)} />)}</Pie><Tooltip formatter={(value: number) => formatMoney(value)} /></PieChart></ResponsiveContainer></div><div className="space-y-2 sm:w-44">{data.slice(0, 4).map(item => <div className="flex items-center justify-between gap-3 text-xs" key={item.category}><span className="flex min-w-0 items-center gap-2 text-slate-600"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: getCategoryColor(item.category) }} /> <span className="truncate">{item.category}</span></span><span className="font-semibold text-slate-900">{formatMoney(item.totalCents)}</span></div>)}</div></div>;
+  return (
+    <div className="flex h-full flex-col gap-4 sm:flex-row sm:items-center">
+      <div className="h-[210px] min-w-0 flex-1">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="totalCents"
+              nameKey="category"
+              innerRadius={58}
+              outerRadius={82}
+              paddingAngle={3}
+            >
+              {data.map(item => (
+                <Cell key={item.category} fill={getCategoryColor(item.category)} />
+              ))}
+            </Pie>
+            <Tooltip formatter={(value: number) => formatMoney(value)} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="max-h-[220px] overflow-y-auto space-y-1.5 sm:w-52 pr-1 scrollbar-thin">
+        {data.map(item => (
+          <div className="flex items-center justify-between gap-3 text-xs" key={item.category}>
+            <span className="flex min-w-0 items-center gap-2 text-slate-600 dark:text-slate-300">
+              <span
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: getCategoryColor(item.category) }}
+              />
+              <span className="truncate">{item.category}</span>
+            </span>
+            <span className="font-semibold text-slate-900 dark:text-slate-100 shrink-0">
+              {formatMoney(item.totalCents)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function MonthlySpendingChart({ data, selectedMonthKey, onSelectMonth }: { data: Array<{ monthKey: string; label: string; totalCents: number; previousTotalCents: number; deltaCents: number; deltaPercent: number | null }>; selectedMonthKey: string | null; onSelectMonth: (monthKey: string) => void }) {
