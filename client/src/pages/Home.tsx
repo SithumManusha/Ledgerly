@@ -1038,10 +1038,6 @@ function InsightsView({ monthLabel, analytics, isLoading }: { monthLabel: string
         </Button>
       </div>
 
-      <div className="mt-8 space-y-8">
-        <CopilotIntelligenceCard />
-        <WhatIfSimulator />
-      </div>
     </>
   );
 }
