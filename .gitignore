@@ -111,3 +111,10 @@ temp/
 .webdev/
 
 .project-config.json
+
+# Local testing, seeding scripts & generated reports
+scripts/seed-showcase.mjs
+scripts/deep-system-audit.mjs
+scripts/align-shared-schema.mjs
+scripts/demo-server.ts
+*.pdf

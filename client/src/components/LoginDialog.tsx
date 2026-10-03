@@ -16,6 +16,7 @@ import {
   passwordPolicyMessage,
   type PasswordStrengthIndicatorData,
 } from "@shared/password";
+import { COOKIE_NAME } from "@shared/const";
 
 type AuthMode = "signin" | "register" | "forgot" | "reset";
 
@@ -153,11 +154,16 @@ export function LoginDialog({
   const utils = trpc.useUtils();
 
   const loginMutation = trpc.auth.login.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
+      if (data?.token) {
+        try {
+          sessionStorage.setItem("ledgerly_auth_token", `${COOKIE_NAME}=${data.token}`);
+        } catch {}
+      }
       setIsSigningIn(false);
       handleOpenChange(false);
       onLogin();
-      utils.auth.me.invalidate();
+      utils.invalidate();
     },
     onError: (err) => {
       setIsSigningIn(false);
@@ -166,11 +172,16 @@ export function LoginDialog({
   });
 
   const registerMutation = trpc.auth.register.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
+      if (data?.token) {
+        try {
+          sessionStorage.setItem("ledgerly_auth_token", `${COOKIE_NAME}=${data.token}`);
+        } catch {}
+      }
       setIsRegistering(false);
       handleOpenChange(false);
       onLogin();
-      utils.auth.me.invalidate();
+      utils.invalidate();
     },
     onError: (err) => {
       setIsRegistering(false);
