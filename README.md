@@ -40,6 +40,8 @@
 
 ### 5. 📊 Core Financial Command Center
 - **Overview Dashboard (`/`):** Real-time spending distribution, category donut charts, daily rhythm heatmaps, and Month-over-Month (MoM) trajectories.
+- **Dedicated AI Copilot Cockpit (`/copilot`):** Autonomous 0–100 Health Score gauge, velocity anomaly alerts, What-If runway stress-testing sliders, and conversational guidance.
+- **Spending Analytics & Insights (`/insights`):** Granular burn analytics, category distributions, daily rhythm charts, and instant link to the Copilot.
 - **Transactions Ledger (`/transactions`):** Full multi-currency ledger (LKR, USD, EUR, GBP) with receipt capture, CSV import/export, and smart categorization.
 - **Budget Limits & Guardrails (`/budgets`):** Visual threshold progress bars and category cap management.
 - **Recurring Commitments (`/recurring`):** Proactive tracking for recurring utility bills, subscriptions, and savings goal targets.
