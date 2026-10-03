@@ -375,7 +375,7 @@ export default function Home() {
   useEffect(() => {
     if (alertSettingsQuery.data) setWarningThreshold(String(alertSettingsQuery.data.budgetWarningThresholdPercent));
   }, [alertSettingsQuery.data]);
-  const view = location === "/transactions" ? "transactions" : location === "/budgets" ? "budgets" : location === "/recurring" ? "recurring" : location === "/insights" ? "insights" : location === "/shared" ? "shared" : "overview";
+  const view = location === "/transactions" ? "transactions" : location === "/budgets" ? "budgets" : location === "/recurring" ? "recurring" : location === "/copilot" ? "copilot" : location === "/insights" ? "insights" : location === "/shared" ? "shared" : "overview";
 
   const recentExpenses = useMemo(() => (expensesQuery.data ?? []).slice(0, 6), [expensesQuery.data]);
   const comparisonData = useMemo(() => buildMonthOverMonthComparison(analytics?.monthlyTotals ?? []), [analytics?.monthlyTotals]);
@@ -690,6 +690,7 @@ export default function Home() {
             </div>
           </>
         )}
+        {view === "copilot" && <CopilotView />}
         {view === "insights" && <InsightsView monthLabel={monthLabel} analytics={analytics} isLoading={analyticsQuery.isLoading} />}
         {view === "shared" && <SharedGroupsView />}
       </div>
@@ -947,6 +948,7 @@ function BudgetsView({ monthLabel, budgetRows, categoryTotals, budgetProgress, b
 }
 
 function InsightsView({ monthLabel, analytics, isLoading }: { monthLabel: string; analytics: any; isLoading: boolean }) {
+  const [, setLocation] = useLocation();
   const summary = analytics?.summary;
   return (
     <>
@@ -1021,11 +1023,42 @@ function InsightsView({ monthLabel, analytics, isLoading }: { monthLabel: string
         </Card>
       </div>
 
+      <div className="mt-8 rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-emerald-500 text-white shadow-md shadow-emerald-500/20">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-slate-900 dark:text-white">Looking for the Dedicated AI Copilot Workspace?</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Explore interactive What-If runway stress-testing sliders, category anomaly alerts, and natural language advice in the dedicated cockpit.</p>
+          </div>
+        </div>
+        <Button onClick={() => setLocation("/copilot")} className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 text-xs font-semibold h-9 px-4">
+          Open AI Copilot <ChevronRight className="ml-1.5 h-3.5 w-3.5" />
+        </Button>
+      </div>
+
       <div className="mt-8 space-y-8">
         <CopilotIntelligenceCard />
         <WhatIfSimulator />
       </div>
     </>
+  );
+}
+
+function CopilotView() {
+  return (
+    <div className="space-y-8">
+      <SectionHeading
+        eyebrow="Autonomous Financial Intelligence"
+        title="AI Financial Copilot & Runway Simulator"
+        description="Prescriptive health scoring, spending velocity anomaly flags, predictive runway stress-testing, and context-grounded financial advice."
+      />
+      <div className="space-y-8">
+        <CopilotIntelligenceCard />
+        <WhatIfSimulator />
+      </div>
+    </div>
   );
 }
 

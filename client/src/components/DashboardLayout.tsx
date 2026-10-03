@@ -52,6 +52,7 @@ const menuItems = [
   { icon: ReceiptText, label: "Transactions", path: "/transactions" },
   { icon: WalletCards, label: "Budgets", path: "/budgets" },
   { icon: Repeat2, label: "Recurring", path: "/recurring" },
+  { icon: Sparkles, label: "AI Copilot", path: "/copilot", isAi: true },
   { icon: BarChart3, label: "Insights", path: "/insights" },
   { icon: Users, label: "Shared Groups", path: "/shared" },
 ];
@@ -306,7 +307,12 @@ function DashboardLayoutContent({
                       <item.icon
                         className={`!size-[22px] shrink-0 transition-colors ${isActive ? "text-primary stroke-[2.2]" : "text-muted-foreground stroke-[1.8]"}`}
                       />
-                      <span className="text-[14px]">{item.label}</span>
+                      <span className="text-[14px] flex-1 text-left">{item.label}</span>
+                      {item.isAi && !isCollapsed && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full border border-emerald-500/20 shadow-xs">
+                          AI
+                        </span>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
