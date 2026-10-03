@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Brain, Sparkles, TrendingUp, AlertTriangle, ShieldCheck, CheckCircle2, Send, Lightbulb, ArrowUpRight } from "lucide-react";
+import { Brain, Sparkles, TrendingUp, AlertTriangle, ShieldCheck, CheckCircle2, Send, Lightbulb } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,8 @@ export function CopilotIntelligenceCard() {
   const [copilotResponse, setCopilotResponse] = useState<string | null>(null);
 
   const { data: health, isLoading } = trpc.intelligence.getHealthAndForecasts.useQuery(undefined, {
-    staleTime: 30000,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const askMutation = trpc.intelligence.askCopilot.useMutation({
@@ -34,6 +35,12 @@ export function CopilotIntelligenceCard() {
     if (score >= 55) return "text-amber-600 bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800";
     return "text-rose-600 bg-rose-50 dark:bg-rose-950 border-rose-200 dark:border-rose-800";
   };
+
+  const topAnomaly = health?.anomalies?.find((a) => a.isAnomaly);
+  const topBreach = health?.forecasts?.find((f) => f.status === "CRITICAL" || f.status === "WARNING");
+  const hasExpenses = (health?.metrics?.totalSpendCents ?? 0) > 0;
+  const hasBudgets = (health?.forecasts?.length ?? 0) > 0;
+  const hasAnyWarning = Boolean(topAnomaly || topBreach);
 
   return (
     <Card className="border-0 bg-white dark:bg-slate-900 shadow-[0_10px_30px_rgba(25,35,25,0.06)] overflow-hidden">
@@ -63,21 +70,21 @@ export function CopilotIntelligenceCard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
           {/* Health Score Pill */}
           <div className="lg:col-span-4 flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850">
-            <div className={`flex flex-col items-center justify-center h-20 w-20 rounded-2xl border-2 font-bold shadow-sm shrink-0 ${getScoreColor(health?.score ?? 84)}`}>
-              <span className="text-2xl tracking-tight leading-none">{health?.score ?? 84}</span>
+            <div className={`flex flex-col items-center justify-center h-20 w-20 rounded-2xl border-2 font-bold shadow-sm shrink-0 ${getScoreColor(health?.score ?? 85)}`}>
+              <span className="text-2xl tracking-tight leading-none">{isLoading ? "--" : (health?.score ?? 85)}</span>
               <span className="text-[10px] font-medium uppercase mt-0.5">/ 100</span>
             </div>
             <div>
               <div className="flex items-center gap-1.5">
                 <Badge className="bg-emerald-600 text-white font-bold text-xs px-1.5 py-0.5">
-                  Grade {health?.grade ?? "A"}
+                  Grade {isLoading ? "..." : (health?.grade ?? "A")}
                 </Badge>
                 <span className="text-xs font-semibold text-slate-900 dark:text-white truncate">
-                  {health?.title ?? "Strong Financial Health"}
+                  {isLoading ? "Analyzing..." : (health?.title ?? "Financial Health")}
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                {health?.summary ?? "Healthy cash buffer and consistent savings velocity. Minimal overspend risks detected."}
+                {isLoading ? "Calculating cash flow velocity and budget adherence..." : (health?.summary ?? "Healthy cash buffer and consistent savings velocity.")}
               </p>
             </div>
           </div>
@@ -87,33 +94,48 @@ export function CopilotIntelligenceCard() {
             <div className="p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800/60">
               <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Budget Adherence</span>
               <div className="flex items-baseline justify-between mt-1">
-                <span className="text-lg font-bold text-slate-900 dark:text-white">{health?.breakdown.budgetAdherence ?? 35} / 35</span>
+                <span className="text-lg font-bold text-slate-900 dark:text-white">
+                  {isLoading ? "--" : (health?.breakdown?.budgetAdherence ?? 35)} / 35
+                </span>
                 <ShieldCheck className="h-4 w-4 text-emerald-500" />
               </div>
               <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${((health?.breakdown.budgetAdherence ?? 35) / 35) * 100}%` }} />
+                <div
+                  className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${((health?.breakdown?.budgetAdherence ?? 35) / 35) * 100}%` }}
+                />
               </div>
             </div>
 
             <div className="p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800/60">
               <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Savings Liquidity</span>
               <div className="flex items-baseline justify-between mt-1">
-                <span className="text-lg font-bold text-slate-900 dark:text-white">{health?.breakdown.savingsRate ?? 30} / 35</span>
+                <span className="text-lg font-bold text-slate-900 dark:text-white">
+                  {isLoading ? "--" : (health?.breakdown?.savingsRate ?? 30)} / 35
+                </span>
                 <CheckCircle2 className="h-4 w-4 text-blue-500" />
               </div>
               <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-blue-500 h-full rounded-full" style={{ width: `${((health?.breakdown.savingsRate ?? 30) / 35) * 100}%` }} />
+                <div
+                  className="bg-blue-500 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${((health?.breakdown?.savingsRate ?? 30) / 35) * 100}%` }}
+                />
               </div>
             </div>
 
             <div className="p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800/60">
               <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Burn Stability</span>
               <div className="flex items-baseline justify-between mt-1">
-                <span className="text-lg font-bold text-slate-900 dark:text-white">{health?.breakdown.burnStability ?? 25} / 30</span>
+                <span className="text-lg font-bold text-slate-900 dark:text-white">
+                  {isLoading ? "--" : (health?.breakdown?.burnStability ?? 25)} / 30
+                </span>
                 <TrendingUp className="h-4 w-4 text-emerald-500" />
               </div>
               <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${((health?.breakdown.burnStability ?? 25) / 30) * 100}%` }} />
+                <div
+                  className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${((health?.breakdown?.burnStability ?? 25) / 30) * 100}%` }}
+                />
               </div>
             </div>
           </div>
@@ -122,37 +144,114 @@ export function CopilotIntelligenceCard() {
         {/* Live Anomaly Alerts & Proactive Tips */}
         <div className="space-y-3">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-900 dark:text-white">
-            <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+            {hasAnyWarning ? (
+              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+            ) : (
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+            )}
             <span>Autonomous Intelligence Alerts & Insights</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* Top Anomaly Alert */}
-            <div className="p-3.5 rounded-xl border border-amber-200/80 bg-amber-50/40 dark:bg-amber-950/20 dark:border-amber-900/40 flex items-start gap-3">
-              <div className="p-1.5 rounded-md bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5">
-                <AlertTriangle className="h-4 w-4" />
+            {/* Dynamic Velocity Anomaly Alert */}
+            {topAnomaly ? (
+              <div className="p-3.5 rounded-xl border border-amber-200/80 bg-amber-50/40 dark:bg-amber-950/20 dark:border-amber-900/40 flex items-start gap-3">
+                <div className="p-1.5 rounded-md bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5">
+                  <AlertTriangle className="h-4 w-4" />
+                </div>
+                <div className="text-xs">
+                  <span className="font-semibold text-amber-900 dark:text-amber-200">Velocity Spike Detected: </span>
+                  <span className="text-slate-600 dark:text-slate-400">
+                    {topAnomaly.category} spending is running at {formatMoney(topAnomaly.dailyBurnCents)}/day (+{topAnomaly.pctChangeFromBaseline}% above 30-day baseline). {topAnomaly.anomalyReason ?? "Review recent transactions to maintain liquidity."}
+                  </span>
+                </div>
               </div>
-              <div className="text-xs">
-                <span className="font-semibold text-amber-900 dark:text-amber-200">Velocity Spike Detected: </span>
-                <span className="text-slate-600 dark:text-slate-400">
-                  Transport spending is running at LKR 1,840/day (+38% above 30-day baseline). Cap ride-hailing to protect month-end liquidity.
-                </span>
+            ) : (
+              <div className="p-3.5 rounded-xl border border-emerald-200/80 bg-emerald-50/40 dark:bg-emerald-950/20 dark:border-emerald-900/40 flex items-start gap-3">
+                <div className="p-1.5 rounded-md bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5">
+                  <CheckCircle2 className="h-4 w-4" />
+                </div>
+                <div className="text-xs">
+                  <span className="font-semibold text-emerald-900 dark:text-emerald-200">
+                    {hasExpenses ? "Optimal Velocity:" : "Velocity Tracking Active:"}
+                  </span>{" "}
+                  <span className="text-slate-600 dark:text-slate-400">
+                    {hasExpenses
+                      ? "Cash flow is stable across all categories with zero anomalous spending spikes detected against your baseline."
+                      : "No transactions recorded for this period yet. Spending velocity and burn anomalies will be calculated automatically as you log expenses."}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Budget Breach Extrapolation */}
-            <div className="p-3.5 rounded-xl border border-rose-200/80 bg-rose-50/40 dark:bg-rose-950/20 dark:border-rose-900/40 flex items-start gap-3">
-              <div className="p-1.5 rounded-md bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-400 shrink-0 mt-0.5">
-                <AlertTriangle className="h-4 w-4" />
+            {/* Dynamic Budget Breach / Runway Guardrail Warning */}
+            {topBreach ? (
+              <div
+                className={`p-3.5 rounded-xl border flex items-start gap-3 ${
+                  topBreach.status === "CRITICAL"
+                    ? "border-rose-200/80 bg-rose-50/40 dark:bg-rose-950/20 dark:border-rose-900/40"
+                    : "border-amber-200/80 bg-amber-50/40 dark:bg-amber-950/20 dark:border-amber-900/40"
+                }`}
+              >
+                <div
+                  className={`p-1.5 rounded-md shrink-0 mt-0.5 ${
+                    topBreach.status === "CRITICAL"
+                      ? "bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-400"
+                      : "bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-400"
+                  }`}
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                </div>
+                <div className="text-xs">
+                  <span
+                    className={`font-semibold ${
+                      topBreach.status === "CRITICAL"
+                        ? "text-rose-900 dark:text-rose-200"
+                        : "text-amber-900 dark:text-amber-200"
+                    }`}
+                  >
+                    {topBreach.status === "CRITICAL" ? "Budget Limit Exceeded: " : "Runway Guardrail Warning: "}
+                  </span>
+                  <span className="text-slate-600 dark:text-slate-400">
+                    {topBreach.category} is at {topBreach.percentUsed}% utilization ({formatMoney(topBreach.spentCents)} of {formatMoney(topBreach.budgetCents)}). {topBreach.recommendation}
+                  </span>
+                </div>
               </div>
-              <div className="text-xs">
-                <span className="font-semibold text-rose-900 dark:text-rose-200">Runway Guardrail Warning: </span>
-                <span className="text-slate-600 dark:text-slate-400">
-                  Food & dining has reached 85% utilization. Burn extrapolation indicates limit breach in approx. 6 days.
-                </span>
+            ) : (
+              <div className="p-3.5 rounded-xl border border-emerald-200/80 bg-emerald-50/40 dark:bg-emerald-950/20 dark:border-emerald-900/40 flex items-start gap-3">
+                <div className="p-1.5 rounded-md bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5">
+                  <ShieldCheck className="h-4 w-4" />
+                </div>
+                <div className="text-xs">
+                  <span className="font-semibold text-emerald-900 dark:text-emerald-200">
+                    {hasBudgets ? "Healthy Runway:" : "Runway Guardrails Ready:"}
+                  </span>{" "}
+                  <span className="text-slate-600 dark:text-slate-400">
+                    {hasBudgets
+                      ? "All active category budgets are operating within safe guardrails. No projected limit breaches detected."
+                      : "No category budgets configured for this month yet. Set monthly spending targets in the Budgeting tab to activate predictive breach warnings."}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
+
+          {/* Proactive Intelligence Tips */}
+          {health?.proactiveTips && health.proactiveTips.length > 0 && (
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-1.5">
+              <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
+                Copilot Recommendations:
+              </span>
+              <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+                {health.proactiveTips.map((tip, idx) => (
+                  <li key={idx} className="leading-relaxed">
+                    {tip}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Natural Language Financial Copilot Prompt Box */}

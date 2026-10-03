@@ -367,7 +367,7 @@ export const appRouter = router({
       const sessionToken = await sdk.createSessionToken(user.openId, { name: user.name || input.name });
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(COOKIE_NAME, sessionToken, cookieOptions);
-      return { success: true, user: { id: user.id, name: user.name, email: user.email } } as const;
+      return { success: true, user: { id: user.id, name: user.name, email: user.email }, token: sessionToken } as const;
     }),
     login: publicProcedure.input(z.object({
       email: authEmailSchema,
@@ -388,7 +388,7 @@ export const appRouter = router({
       const sessionToken = await sdk.createSessionToken(user.openId, { name: user.name || "" });
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(COOKIE_NAME, sessionToken, cookieOptions);
-      return { success: true, user: { id: user.id, name: user.name, email: user.email } } as const;
+      return { success: true, user: { id: user.id, name: user.name, email: user.email }, token: sessionToken } as const;
     }),
     forgotPassword: publicProcedure
       .input(z.object({ email: authEmailSchema }))
@@ -1239,7 +1239,7 @@ Return strict JSON matching the schema.`,
           expenses: monthRows,
           budgets: budgetsMapped,
           recurringExpenses: recurringMapped,
-          savingsBalanceCents: savingsGoal?.targetCents ?? 52000000,
+          savingsBalanceCents: savingsGoal?.targetCents ?? 0,
           daysInMonth,
           currentDay,
         });
@@ -1263,7 +1263,9 @@ Return strict JSON matching the schema.`,
 
         const monthRows = userExpenses.filter(e => e.transactionDate.toISOString().slice(0, 7) === monthKey);
         const totalSpendCents = monthRows.reduce((sum, e) => sum + e.amountCents, 0);
-        const baselineMonthlyBurnCents = totalSpendCents > 0 ? totalSpendCents : 22750000;
+        const allSpendCents = userExpenses.reduce((sum, e) => sum + e.amountCents, 0);
+        const hasData = totalSpendCents > 0 || allSpendCents > 0;
+        const baselineMonthlyBurnCents = totalSpendCents > 0 ? totalSpendCents : (allSpendCents > 0 ? allSpendCents : 22750000);
         const savingsBalanceCents = savingsGoal?.targetCents ?? 52000000;
 
         return runWhatIfSimulation({
@@ -1274,6 +1276,7 @@ Return strict JSON matching the schema.`,
           },
           baselineMonthlyBurnCents,
           savingsBalanceCents,
+          hasData,
         });
       }),
 
@@ -1288,9 +1291,9 @@ Return strict JSON matching the schema.`,
 
         const totalSpendCents = userExpenses.reduce((sum, e) => sum + e.amountCents, 0);
         const totalBudgetCents = userBudgets.reduce((sum, b) => sum + b.limitCents, 0);
-        const savingsCents = savingsGoal?.targetCents ?? 52000000;
+        const savingsCents = savingsGoal?.targetCents ?? 0;
 
-        const contextSummary = `User Total Recorded Expenses: LKR ${(totalSpendCents / 100).toLocaleString()}; Monthly Budget: LKR ${(totalBudgetCents / 100).toLocaleString()}; Savings Reserves: LKR ${(savingsCents / 100).toLocaleString()}; Active categories: ${userBudgets.map(b => b.category).join(", ")}.`;
+        const contextSummary = `User Total Recorded Expenses: LKR ${(totalSpendCents / 100).toLocaleString()}; Monthly Budget: LKR ${(totalBudgetCents / 100).toLocaleString()}; Savings Reserves: ${savingsGoal?.targetCents ? `LKR ${(savingsGoal.targetCents / 100).toLocaleString()}` : "None set"}; Active categories: ${userBudgets.map(b => b.category).join(", ") || "None yet"}.`;
 
         const answer = await queryFinancialCopilot(input.prompt, contextSummary);
         return { answer };

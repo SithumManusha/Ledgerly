@@ -52,6 +52,7 @@ export interface WhatIfInput {
 }
 
 export interface WhatIfSimulation {
+  hasData: boolean;
   baselineMonthlyBurnCents: number;
   simulatedMonthlyBurnCents: number;
   monthlySavingsDeltaCents: number;
@@ -79,7 +80,7 @@ export function analyzeFinancialHealth(params: {
   daysInMonth?: number;
   currentDay?: number;
 }): FinancialHealthScore {
-  const { expenses, budgets, recurringExpenses, savingsBalanceCents = 52000000 } = params;
+  const { expenses, budgets, recurringExpenses, savingsBalanceCents = 0 } = params;
   const daysInMonth = params.daysInMonth ?? 30;
   const currentDay = Math.max(1, Math.min(daysInMonth, params.currentDay ?? 30));
 
@@ -170,9 +171,11 @@ export function analyzeFinancialHealth(params: {
   }
 
   // Part B: Savings & Liquidity Rate (35 pts)
-  const savingsRunwayMonths = dailyBurnCents > 0 ? Number(((savingsBalanceCents / (dailyBurnCents * 30))).toFixed(1)) : 12;
+  const savingsRunwayMonths = dailyBurnCents > 0 ? Number(((savingsBalanceCents / (dailyBurnCents * 30))).toFixed(1)) : (savingsBalanceCents > 0 ? 12 : 0);
   let savingsScore = 35;
-  if (savingsRunwayMonths >= 6) savingsScore = 35;
+  if (totalSpendCents === 0 && savingsBalanceCents === 0) {
+    savingsScore = 30;
+  } else if (savingsRunwayMonths >= 6) savingsScore = 35;
   else if (savingsRunwayMonths >= 3) savingsScore = 25;
   else if (savingsRunwayMonths >= 1) savingsScore = 15;
   else savingsScore = 5;
@@ -191,7 +194,11 @@ export function analyzeFinancialHealth(params: {
   let title = "Managed Cash Flow";
   let summary = "Finances are active with moderate liquidity buffers. Keep an eye on category velocity.";
 
-  if (finalScore >= 90) {
+  if (totalSpendCents === 0 && totalBudgetCents === 0) {
+    grade = "A";
+    title = "Fresh Financial Workspace";
+    summary = "No transactions recorded for this period yet. Your score and autonomous alerts will calibrate as transactions are logged.";
+  } else if (finalScore >= 90) {
     grade = "A+";
     title = "Exceptional Financial Discipline";
     summary = "Spending is highly controlled with robust liquidity runway and zero active anomalies.";
@@ -213,13 +220,15 @@ export function analyzeFinancialHealth(params: {
   const proactiveTips: string[] = [];
   const topAnomaly = anomalies.find(a => a.isAnomaly);
   if (topAnomaly) {
-    proactiveTips.push(`Velocity Spike: ${topAnomaly.category} is up ${topAnomaly.pctChangeFromBaseline}%. Consider capping weekend outlays.`);
+    proactiveTips.push(`Velocity Spike: ${topAnomaly.category} is up ${topAnomaly.pctChangeFromBaseline}%. Consider capping discretionary outlays.`);
   }
   const breach = forecasts.find(f => f.status === "WARNING" || f.status === "CRITICAL");
   if (breach) {
     proactiveTips.push(`Runway Guardrail: ${breach.category} is at ${breach.percentUsed}% utilization. ${breach.recommendation}`);
   }
-  if (savingsRunwayMonths >= 6) {
+  if (totalSpendCents === 0) {
+    proactiveTips.push("Quick Start: Record your recurring bills and regular expenses to unlock automated cash flow forecasting.");
+  } else if (savingsRunwayMonths >= 6) {
     proactiveTips.push(`Emergency Cushion: Your current balance provides a comfortable ${savingsRunwayMonths} months of living runway.`);
   }
 
@@ -253,8 +262,9 @@ export function runWhatIfSimulation(params: {
   input: WhatIfInput;
   baselineMonthlyBurnCents: number;
   savingsBalanceCents: number;
+  hasData?: boolean;
 }): WhatIfSimulation {
-  const { input, baselineMonthlyBurnCents, savingsBalanceCents } = params;
+  const { input, baselineMonthlyBurnCents, savingsBalanceCents, hasData = true } = params;
   
   // Discretionary spend is estimated at 60% of total burn
   const discretionaryCents = Math.round(baselineMonthlyBurnCents * 0.60);
@@ -311,6 +321,7 @@ export function runWhatIfSimulation(params: {
   });
 
   return {
+    hasData,
     baselineMonthlyBurnCents,
     simulatedMonthlyBurnCents,
     monthlySavingsDeltaCents,

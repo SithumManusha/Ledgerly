@@ -3,6 +3,8 @@ import { Sliders, Sparkles, TrendingUp, AlertTriangle, ShieldCheck, DollarSign, 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatMoney } from "@/lib/formatters";
 import {
@@ -17,6 +19,7 @@ import {
 } from "recharts";
 
 export function WhatIfSimulator() {
+  const [, setLocation] = useLocation();
   const [discretionaryCutPct, setDiscretionaryCutPct] = useState(15);
   const [majorPurchaseLkr, setMajorPurchaseLkr] = useState(50000);
   const [incomeShiftLkr, setIncomeShiftLkr] = useState(0);
@@ -33,8 +36,16 @@ export function WhatIfSimulator() {
   }, [discretionaryCutPct, majorPurchaseLkr, incomeShiftLkr]);
 
   const result = simulateMutation.data;
+  const hasData = result?.hasData ?? true;
 
-  const getRiskBadge = (level?: string) => {
+  const getRiskBadge = (dataAvailable?: boolean, level?: string) => {
+    if (dataAvailable === false) {
+      return (
+        <Badge variant="outline" className="text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800 text-[11px] font-medium">
+          Awaiting Activity
+        </Badge>
+      );
+    }
     switch (level) {
       case "LOW_RISK":
         return (
@@ -77,146 +88,170 @@ export function WhatIfSimulator() {
             <div>
               <CardTitle className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                 What-If Financial Runway Simulator
-                <Sparkles className="h-3.5 w-3.5 text-emerald-600 animate-spin" />
+                {simulateMutation.isPending && (
+                  <Sparkles className="h-3.5 w-3.5 text-emerald-600 animate-spin" />
+                )}
               </CardTitle>
               <CardDescription className="text-xs text-slate-500 mt-0.5">
                 Model discretionary cuts, major capital purchases, and income shifts on your liquidity buffer.
               </CardDescription>
             </div>
           </div>
-          <div>{getRiskBadge(result?.riskLevel)}</div>
+          <div>{getRiskBadge(result?.hasData, result?.riskLevel)}</div>
         </div>
       </CardHeader>
 
       <CardContent className="p-6 space-y-6">
-        {/* Controls Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-          {/* Slider 1: Discretionary Spend Cut */}
-          <div className="space-y-2.5">
-            <div className="flex justify-between items-center text-xs">
-              <span className="font-medium text-slate-700 dark:text-slate-300">Cut Discretionary Spend</span>
-              <span className="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded">
-                -{discretionaryCutPct}%
-              </span>
+        {result && result.hasData === false ? (
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-850/50">
+            <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mb-3 shadow-sm">
+              <Sliders className="h-6 w-6" />
             </div>
-            <Slider
-              value={[discretionaryCutPct]}
-              onValueChange={([val]) => setDiscretionaryCutPct(val)}
-              min={0}
-              max={50}
-              step={5}
-              className="w-full"
-            />
-            <p className="text-[11px] text-slate-400">Reduce dining out, entertainment & luxury purchases</p>
-          </div>
-
-          {/* Slider 2: Major Capital Purchase */}
-          <div className="space-y-2.5">
-            <div className="flex justify-between items-center text-xs">
-              <span className="font-medium text-slate-700 dark:text-slate-300">Major One-off Purchase</span>
-              <span className="font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
-                LKR {majorPurchaseLkr.toLocaleString()}
-              </span>
-            </div>
-            <Slider
-              value={[majorPurchaseLkr]}
-              onValueChange={([val]) => setMajorPurchaseLkr(val)}
-              min={0}
-              max={300000}
-              step={10000}
-              className="w-full"
-            />
-            <p className="text-[11px] text-slate-400">Simulate laptop, home appliance, or holiday travel</p>
-          </div>
-
-          {/* Slider 3: Monthly Income Adjustment */}
-          <div className="space-y-2.5">
-            <div className="flex justify-between items-center text-xs">
-              <span className="font-medium text-slate-700 dark:text-slate-300">Monthly Income Delta</span>
-              <span className={`font-bold px-2 py-0.5 rounded ${incomeShiftLkr >= 0 ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950" : "text-rose-600 bg-rose-50 dark:bg-rose-950"}`}>
-                {incomeShiftLkr >= 0 ? `+LKR ${incomeShiftLkr.toLocaleString()}` : `-LKR ${Math.abs(incomeShiftLkr).toLocaleString()}`}
-              </span>
-            </div>
-            <Slider
-              value={[incomeShiftLkr]}
-              onValueChange={([val]) => setIncomeShiftLkr(val)}
-              min={-50000}
-              max={100000}
-              step={10000}
-              className="w-full"
-            />
-            <p className="text-[11px] text-slate-400">Model salary changes, freelance contracts, or bonuses</p>
-          </div>
-        </div>
-
-        {/* Dynamic Metric Results */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-850">
-            <p className="text-xs uppercase tracking-wider font-semibold text-slate-400">Simulated Monthly Burn</p>
-            <div className="text-xl font-bold text-slate-900 dark:text-white mt-1">
-              {formatMoney(result?.simulatedMonthlyBurnCents ?? 0)}
-            </div>
-            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center gap-1">
-              <TrendingUp className="h-3 w-3" />
-              Saves {formatMoney(result?.monthlySavingsDeltaCents ?? 0)}/mo
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+              Runway Simulator Awaiting Expense Activity
+            </h3>
+            <p className="mt-1.5 max-w-md text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              What-If stress-testing projects your living runway and discretionary burn based on real monthly spending. Add your first transactions in the Transactions tab to unlock interactive sliders and cash flow forecasts.
             </p>
+            <Button
+              onClick={() => setLocation("/transactions")}
+              className="mt-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold h-9 px-4"
+            >
+              Log First Expense
+            </Button>
           </div>
-
-          <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-850">
-            <p className="text-xs uppercase tracking-wider font-semibold text-slate-400">Simulated Living Runway</p>
-            <div className="text-xl font-bold text-slate-900 dark:text-white mt-1">
-              {result?.simulatedRunwayMonths ?? 0} months
-            </div>
-            <p className={`text-xs mt-0.5 ${(result?.runwayDeltaMonths ?? 0) >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-              {(result?.runwayDeltaMonths ?? 0) >= 0 ? `+${result?.runwayDeltaMonths} months buffer` : `${result?.runwayDeltaMonths} months reduction`}
-            </p>
-          </div>
-
-          <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-850">
-            <p className="text-xs uppercase tracking-wider font-semibold text-slate-400">Capital Impact</p>
-            <div className="text-xl font-bold text-slate-900 dark:text-white mt-1">
-              LKR {majorPurchaseLkr.toLocaleString()}
-            </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              One-time immediate liquidity outlay
-            </p>
-          </div>
-        </div>
-
-        {/* Executive Summary */}
-        {result?.executiveSummary && (
-          <div className="p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 text-xs text-slate-700 dark:text-slate-300 leading-relaxed flex items-start gap-2.5">
-            <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-semibold text-emerald-900 dark:text-emerald-200">Autonomous Copilot Verdict: </span>
-              {result.executiveSummary}
-            </div>
-          </div>
-        )}
-
-        {/* 6-Month Projected Timeline Visualization */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-900 dark:text-white">
-            <span>6-Month Projected Liquidity Trajectory</span>
-            <span className="text-[11px] font-normal text-slate-400">Baseline Cash Flow vs Simulated Scenario</span>
-          </div>
-          <div className="h-[240px] w-full pt-3">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <YAxis tickFormatter={(val) => `${Math.round(val / 1000)}k`} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <Tooltip
-                  formatter={(val: number) => `LKR ${val.toLocaleString()}`}
-                  contentStyle={{ backgroundColor: "#0f172a", borderColor: "#1e293b", color: "#f8fafc", borderRadius: "8px", fontSize: "12px" }}
+        ) : (
+          <>
+            {/* Controls Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+              {/* Slider 1: Discretionary Spend Cut */}
+              <div className="space-y-2.5">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-medium text-slate-700 dark:text-slate-300">Cut Discretionary Spend</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded">
+                    -{discretionaryCutPct}%
+                  </span>
+                </div>
+                <Slider
+                  value={[discretionaryCutPct]}
+                  onValueChange={([val]) => setDiscretionaryCutPct(val)}
+                  min={0}
+                  max={50}
+                  step={5}
+                  className="w-full"
                 />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
-                <Bar dataKey="Current Baseline" fill="#94a3b8" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Simulated Scenario" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+                <p className="text-[11px] text-slate-400">Reduce dining out, entertainment & luxury purchases</p>
+              </div>
+
+              {/* Slider 2: Major Capital Purchase */}
+              <div className="space-y-2.5">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-medium text-slate-700 dark:text-slate-300">Major One-off Purchase</span>
+                  <span className="font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+                    LKR {majorPurchaseLkr.toLocaleString()}
+                  </span>
+                </div>
+                <Slider
+                  value={[majorPurchaseLkr]}
+                  onValueChange={([val]) => setMajorPurchaseLkr(val)}
+                  min={0}
+                  max={300000}
+                  step={10000}
+                  className="w-full"
+                />
+                <p className="text-[11px] text-slate-400">Simulate laptop, home appliance, or holiday travel</p>
+              </div>
+
+              {/* Slider 3: Monthly Income Adjustment */}
+              <div className="space-y-2.5">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-medium text-slate-700 dark:text-slate-300">Monthly Income Delta</span>
+                  <span className={`font-bold px-2 py-0.5 rounded ${incomeShiftLkr >= 0 ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950" : "text-rose-600 bg-rose-50 dark:bg-rose-950"}`}>
+                    {incomeShiftLkr >= 0 ? `+LKR ${incomeShiftLkr.toLocaleString()}` : `-LKR ${Math.abs(incomeShiftLkr).toLocaleString()}`}
+                  </span>
+                </div>
+                <Slider
+                  value={[incomeShiftLkr]}
+                  onValueChange={([val]) => setIncomeShiftLkr(val)}
+                  min={-50000}
+                  max={100000}
+                  step={10000}
+                  className="w-full"
+                />
+                <p className="text-[11px] text-slate-400">Model salary changes, freelance contracts, or bonuses</p>
+              </div>
+            </div>
+
+            {/* Dynamic Metric Results */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-850">
+                <p className="text-xs uppercase tracking-wider font-semibold text-slate-400">Simulated Monthly Burn</p>
+                <div className="text-xl font-bold text-slate-900 dark:text-white mt-1">
+                  {formatMoney(result?.simulatedMonthlyBurnCents ?? 0)}
+                </div>
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3" />
+                  Saves {formatMoney(result?.monthlySavingsDeltaCents ?? 0)}/mo
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-850">
+                <p className="text-xs uppercase tracking-wider font-semibold text-slate-400">Simulated Living Runway</p>
+                <div className="text-xl font-bold text-slate-900 dark:text-white mt-1">
+                  {result?.simulatedRunwayMonths ?? 0} months
+                </div>
+                <p className={`text-xs mt-0.5 ${(result?.runwayDeltaMonths ?? 0) >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                  {(result?.runwayDeltaMonths ?? 0) >= 0 ? `+${result?.runwayDeltaMonths} months buffer` : `${result?.runwayDeltaMonths} months reduction`}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-850">
+                <p className="text-xs uppercase tracking-wider font-semibold text-slate-400">Capital Impact</p>
+                <div className="text-xl font-bold text-slate-900 dark:text-white mt-1">
+                  LKR {majorPurchaseLkr.toLocaleString()}
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  One-time immediate liquidity outlay
+                </p>
+              </div>
+            </div>
+
+            {/* Executive Summary */}
+            {result?.executiveSummary && (
+              <div className="p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 text-xs text-slate-700 dark:text-slate-300 leading-relaxed flex items-start gap-2.5">
+                <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-semibold text-emerald-900 dark:text-emerald-200">Autonomous Copilot Verdict: </span>
+                  {result.executiveSummary}
+                </div>
+              </div>
+            )}
+
+            {/* 6-Month Projected Timeline Visualization */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-900 dark:text-white">
+                <span>6-Month Projected Liquidity Trajectory</span>
+                <span className="text-[11px] font-normal text-slate-400">Baseline Cash Flow vs Simulated Scenario</span>
+              </div>
+              <div className="h-[240px] w-full pt-3">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                    <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                    <YAxis tickFormatter={(val) => `${Math.round(val / 1000)}k`} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                    <Tooltip
+                      formatter={(val: number) => `LKR ${val.toLocaleString()}`}
+                      contentStyle={{ backgroundColor: "#0f172a", borderColor: "#1e293b", color: "#f8fafc", borderRadius: "8px", fontSize: "12px" }}
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
+                    <Bar dataKey="Current Baseline" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Simulated Scenario" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
