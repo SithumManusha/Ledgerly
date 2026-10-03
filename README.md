@@ -16,13 +16,13 @@
 
 ## 🚀 Key Modules & Autonomous Intelligence
 
-### 1. 🧠 Autonomous AI Financial Copilot & Health Scoring (`/insights`)
+### 1. 🧠 Autonomous AI Financial Copilot & Health Scoring (`/copilot`)
 - **Composite Financial Health Engine (0–100 Score & A+ to D Grade):** Synthesizes budget adherence, liquid savings buffer, and monthly burn stability into an actionable health gauge.
 - **Velocity Spike & Spending Anomaly Detection:** Real-time algorithmic detection that flags category expenditure surging >25% above historical baselines.
 - **Budget Breach Forecasts:** Extrapolates current daily burn velocity to predict exact days until category budget exhaustion.
 - **Natural Language Financial Q&A:** Grounded context-aware copilot providing immediate answers (e.g., *"Can I afford a major vacation next month?"*, *"How do I optimize my savings velocity?"*).
 
-### 2. 🎛️ Interactive "What-If" Financial Runway Simulator (`/insights`)
+### 2. 🎛️ Interactive "What-If" Financial Runway Simulator (`/copilot`)
 - **Dynamic Stress-Testing Sliders:** Simulate discretionary spending reductions (0%–50%), one-off capital purchases (LKR), and monthly income shifts.
 - **Runway & Net Delta Projections:** Projects runway extension/depletion in net months, recalculates adjusted monthly burn, and issues dynamic health warnings (Healthy, Warning, Critical).
 - **Comparative Cash-Flow Curves:** Visualizes a 6-month projected comparative expenditure timeline using Recharts.
