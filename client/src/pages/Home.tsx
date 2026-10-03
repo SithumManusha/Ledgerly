@@ -117,12 +117,29 @@ function formatMoney(cents: number) {
   }).format(cents / 100);
 }
 
-function formatCompactDate(date: string) {
-  return new Intl.DateTimeFormat("en-LK", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(`${date}T12:00:00`));
+function formatCompactDate(date?: any) {
+  if (!date) return "Recently";
+  try {
+    let dateStr = "";
+    if (typeof date === "string") {
+      dateStr = date.slice(0, 10);
+    } else if (date instanceof Date) {
+      dateStr = date.toISOString().slice(0, 10);
+    } else if (typeof date?.toISOString === "function") {
+      dateStr = date.toISOString().slice(0, 10);
+    } else {
+      dateStr = String(date).slice(0, 10);
+    }
+    const parsed = new Date(`${dateStr}T12:00:00`);
+    if (Number.isNaN(parsed.getTime())) return "Recently";
+    return new Intl.DateTimeFormat("en-LK", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(parsed);
+  } catch {
+    return "Recently";
+  }
 }
 
 function initials(name?: string | null) {
@@ -1542,7 +1559,7 @@ function SharedGroupsView() {
                       <div key={b.id} className="flex items-center justify-between rounded-xl border border-slate-100 p-3 text-sm">
                         <div>
                           <p className="font-medium text-slate-800">{b.description}</p>
-                          <p className="text-xs text-slate-500">{b.category} · {formatCompactDate(typeof b.billDate === "string" ? b.billDate : b.billDate.toISOString().slice(0, 10))} · {b.allocationMethod} split</p>
+                          <p className="text-xs text-slate-500">{b.category} · {formatCompactDate(b.billDate || b.createdAt)} · {b.allocationMethod} split</p>
                         </div>
                         <div className="flex items-center gap-3">
                           <span className="font-semibold text-slate-900">{formatMoney(b.totalCents)}</span>
