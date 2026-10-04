@@ -118,3 +118,9 @@ scripts/deep-system-audit.mjs
 scripts/align-shared-schema.mjs
 scripts/demo-server.ts
 *.pdf
+cookies.txt
+*.jpg
+all-ui-showcase.*
+portfolio-showcase.*
+.env.example
+

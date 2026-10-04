@@ -129,8 +129,11 @@ cd Ledgerly
 pnpm install
 
 # 3. Configure environment variables
-cp .env.example .env
-# Edit .env and supply your DATABASE_URL and JWT_SECRET
+# Create a local .env file in the root directory:
+# DATABASE_URL="postgresql://<user>:<password>@<host>:<port>/<db>"
+# JWT_SECRET="your-random-32-char-secret-key"
+# APP_URL="http://localhost:3000"
+# PORT=3000
 
 # 4. Push database schema
 pnpm db:push
