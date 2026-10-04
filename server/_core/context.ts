@@ -4,6 +4,8 @@ import { sdk } from "./sdk";
 import { ENV } from "./env";
 import { getUserById } from "../db";
 
+import { COOKIE_NAME } from "../../shared/const";
+
 export type TrpcContext = {
   req: CreateExpressContextOptions["req"];
   res: CreateExpressContextOptions["res"];
@@ -23,11 +25,14 @@ export async function createContext(
   }
 
   // Development & Local Showcase Auto-Login:
-  // When running locally on localhost (or non-production) and no explicit session cookie is present,
-  // automatically default to Sithum Manusha (User ID 1) so localhost:3000 displays full realistic data
-  // on every single page (Dashboard, Transactions, Budgets, Recurring, Insights, Copilot, Shared Groups)
-  // for taking crisp portfolio & LinkedIn screenshots.
-  if (!user && (!ENV.isProduction || opts.req.hostname === "localhost" || opts.req.hostname === "127.0.0.1")) {
+  // Strictly applies to localhost development loopback when NO explicit credentials/tokens are provided,
+  // enabling local screenshots without affecting deployed users or authenticated test sessions.
+  const isLocalHost = opts.req.hostname === "localhost" || opts.req.hostname === "127.0.0.1";
+  const rawCookie = opts.req.headers.cookie ?? "";
+  const hasAuthCookie = rawCookie.includes(`${COOKIE_NAME}=`) && !rawCookie.includes(`${COOKIE_NAME}=;`);
+  const hasAuthHeader = Boolean(opts.req.headers.authorization && opts.req.headers.authorization.startsWith("Bearer "));
+
+  if (!user && isLocalHost && !hasAuthCookie && !hasAuthHeader) {
     try {
       const devUser = await getUserById(1);
       if (devUser) {

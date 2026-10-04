@@ -260,9 +260,8 @@ class SDKServer {
     const cookies = this.parseCookies(req.headers.cookie);
     let sessionToken = cookies.get(COOKIE_NAME);
 
-    // Preview builds may fall back to a bearer token when cookies are blocked.
-    // This path is deliberately disabled in production.
-    if (!sessionToken && !ENV.isProduction) {
+    // Fall back to Bearer token when cookies are blocked or omitted by client
+    if (!sessionToken) {
       const authHeader = req.headers.authorization;
       if (typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
         sessionToken = authHeader.slice(7).trim();

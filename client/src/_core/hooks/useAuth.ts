@@ -46,7 +46,7 @@ export function useAuth(options?: UseAuthOptions) {
         sessionStorage.removeItem("ledgerly_auth_token");
       } catch {}
       utils.auth.me.setData(undefined, null);
-      await utils.auth.me.invalidate();
+      await utils.invalidate();
     }
   }, [logoutMutation, utils]);
 

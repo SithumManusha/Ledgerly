@@ -1,15 +1,12 @@
 const isProduction = process.env.NODE_ENV === "production";
 
-const defaultSecret = "ledgerly_super_secure_production_jwt_key_2026_launch_32chars";
-const cookieSecret = process.env.JWT_SECRET?.trim() || process.env.SESSION_SECRET?.trim() || defaultSecret;
-
-const defaultDbUrl = "postgresql://user:password@localhost:5432/ledgerly";
+const cookieSecret = process.env.JWT_SECRET?.trim() || process.env.SESSION_SECRET?.trim() || (isProduction ? "" : "ledgerly_dev_local_secret_only");
 
 export const ENV = {
   appId: process.env.VITE_APP_ID ?? "ledgerly",
   appUrl: process.env.APP_URL?.trim() || "http://localhost:3000",
   cookieSecret: cookieSecret,
-  databaseUrl: process.env.DATABASE_URL?.trim() || defaultDbUrl,
+  databaseUrl: process.env.DATABASE_URL?.trim() || "",
   oAuthServerUrl: process.env.OAUTH_SERVER_URL ?? "",
   ownerOpenId: process.env.OWNER_OPEN_ID ?? "",
   isProduction,
