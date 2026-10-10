@@ -157,15 +157,56 @@ function isValidDateInput(value: string) {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 }
 
-function downloadBase64File(base64: string, filename: string, contentType: string) {
-  const binary = window.atob(base64);
-  const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
-  const url = URL.createObjectURL(new Blob([bytes], { type: contentType }));
+function downloadFile(blob: Blob, filename: string, openInNewTab = false) {
+  const url = URL.createObjectURL(blob);
+
+  // If it's a PDF and user clicked to export, open in new tab so it shows immediately on screen
+  if (openInNewTab || blob.type === "application/pdf") {
+    try {
+      window.open(url, "_blank");
+    } catch {
+      // Ignore if blocked by popup blocker
+    }
+  }
+
+  // Trigger file download to local Downloads folder
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = filename;
+  anchor.style.display = "none";
+  document.body.appendChild(anchor);
   anchor.click();
-  URL.revokeObjectURL(url);
+
+  // Clean up safely after download initiates
+  setTimeout(() => {
+    if (document.body.contains(anchor)) {
+      document.body.removeChild(anchor);
+    }
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 60000);
+  }, 1000);
+}
+
+function downloadBase64File(base64: string, filename: string, contentType: string) {
+  try {
+    const cleanBase64 = base64.replace(/^data:[^;]+;base64,/, "").trim();
+    const binary = window.atob(cleanBase64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    const blob = new Blob([bytes], { type: contentType });
+    downloadFile(blob, filename, true);
+  } catch (err) {
+    console.error("Base64 download failed:", err);
+    toast.error("Could not process file download.");
+  }
+}
+
+function downloadTextFile(content: string, filename: string, mimeType = "text/csv;charset=utf-8") {
+  const blob = new Blob([content], { type: mimeType });
+  downloadFile(blob, filename, false);
 }
 
 const CATEGORY_ICONS: Record<string, typeof Utensils> = {
@@ -404,6 +445,17 @@ export default function Home() {
     () => filterTransactions(expensesQuery.data ?? [], transactionFilters),
     [expensesQuery.data, transactionFilters],
   );
+  const hasActiveTransactionFilters = useMemo(
+    () =>
+      Boolean(
+        transactionFilters.search ||
+          transactionFilters.fromDate ||
+          transactionFilters.toDate ||
+          (transactionFilters.category && transactionFilters.category !== "all") ||
+          (transactionFilters.currency && transactionFilters.currency !== "all"),
+      ),
+    [transactionFilters],
+  );
   const savingsGoal = savingsGoalQuery.data;
 
   function handleSavingsGoalSubmit(event: FormEvent) {
@@ -420,14 +472,8 @@ export default function Home() {
   function handleExportCsv() {
     void expensesExportQuery.refetch().then(({ data }) => {
       if (!data) return;
-      const blob = new Blob([data.csv], { type: "text/csv;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = data.filename;
-      anchor.click();
-      URL.revokeObjectURL(url);
-      toast.success("CSV export downloaded");
+      downloadTextFile(data.csv, data.filename);
+      toast.success(`Downloaded ${data.filename} to your Downloads folder!`);
     }).catch(error => toast.error(error.message));
   }
 
@@ -561,14 +607,8 @@ export default function Home() {
     }
     void reportQuery.refetch().then(({ data }) => {
       if (!data) return;
-      const blob = new Blob([data.csv], { type: "text/csv;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = data.filename;
-      anchor.click();
-      URL.revokeObjectURL(url);
-      toast.success(`Downloaded ${data.summary.transactionCount} transactions`);
+      downloadTextFile(data.csv, data.filename);
+      toast.success(`Downloaded ${data.filename} (${data.summary.transactionCount} transactions)`);
     }).catch(error => toast.error(error.message));
   }
 
@@ -658,7 +698,36 @@ export default function Home() {
               <Card className="border-0 bg-slate-900 text-white shadow-[0_10px_30px_rgba(25,35,25,0.13)]"><CardHeader><CardTitle className="text-base text-white">{expense.id ? "Edit expense" : "New expense"}</CardTitle></CardHeader><CardContent><ExpenseForm expense={expense} setExpense={setExpense} onSubmit={handleExpenseSubmit} onSuggest={handleSuggest} isSuggesting={isSuggesting} onScanReceipt={handleScanReceipt} isScanningReceipt={isScanningReceipt} isSaving={createExpense.isPending || updateExpense.isPending} onCancel={() => setExpense(emptyExpense())} dark /></CardContent></Card>
               <div className="space-y-4">
                 <TransactionFiltersBar filters={transactionFilters} setFilters={setTransactionFilters} resultCount={filteredTransactions.length} />
-                <RecentExpenses rows={filteredTransactions} onEdit={row => { setExpense({ id: row.id, amount: String(row.amount), date: row.date, description: row.description, category: row.category, aiSuggestedCategory: row.aiSuggestedCategory }); setIsExpenseDialogOpen(true); }} onDelete={id => deleteExpense.mutate({ id })} isDeleting={deleteExpense.isPending} onAdd={() => { setExpense(emptyExpense()); setIsExpenseDialogOpen(true); }} />
+                <RecentExpenses
+                  rows={filteredTransactions}
+                  onEdit={row => {
+                    setExpense({
+                      id: row.id,
+                      amount: String(row.amount),
+                      date: row.date,
+                      description: row.description,
+                      category: row.category,
+                      aiSuggestedCategory: row.aiSuggestedCategory,
+                    });
+                    setIsExpenseDialogOpen(true);
+                  }}
+                  onDelete={id => deleteExpense.mutate({ id })}
+                  isDeleting={deleteExpense.isPending}
+                  onAdd={() => {
+                    setExpense(emptyExpense());
+                    setIsExpenseDialogOpen(true);
+                  }}
+                  hasFiltersActive={hasActiveTransactionFilters}
+                  onResetFilters={() =>
+                    setTransactionFilters({
+                      search: "",
+                      fromDate: "",
+                      toDate: "",
+                      category: "all",
+                      currency: "all",
+                    })
+                  }
+                />
               </div>
             </div>
           </>

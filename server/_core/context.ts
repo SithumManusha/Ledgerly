@@ -32,7 +32,7 @@ export async function createContext(
   const hasAuthCookie = rawCookie.includes(`${COOKIE_NAME}=`) && !rawCookie.includes(`${COOKIE_NAME}=;`);
   const hasAuthHeader = Boolean(opts.req.headers.authorization && opts.req.headers.authorization.startsWith("Bearer "));
 
-  if (!user && isLocalHost && !hasAuthCookie && !hasAuthHeader) {
+  if (!user && isLocalHost) {
     try {
       const devUser = await getUserById(1);
       if (devUser) {

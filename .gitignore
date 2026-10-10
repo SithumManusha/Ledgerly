@@ -124,3 +124,9 @@ all-ui-showcase.*
 portfolio-showcase.*
 .env.example
 
+# Local test artifacts & screen captures
+videos/
+scripts/debug_*.mjs
+scripts/record_*.mjs
+scripts/test_*.mjs
+scripts/verify_*.mjs

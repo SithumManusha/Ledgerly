@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Brain, Sparkles, TrendingUp, AlertTriangle, ShieldCheck, CheckCircle2, Send, Lightbulb } from "lucide-react";
+import { Brain, Sparkles, TrendingUp, AlertTriangle, ShieldCheck, CheckCircle2, Send, Lightbulb, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
 import { formatMoney } from "@/lib/formatters";
+import { toast } from "sonner";
 
 export function CopilotIntelligenceCard() {
   const [copilotPrompt, setCopilotPrompt] = useState("");
@@ -20,11 +21,15 @@ export function CopilotIntelligenceCard() {
     onSuccess: (data) => {
       setCopilotResponse(data.answer);
     },
+    onError: (err) => {
+      toast.error(err.message || "Failed to query Copilot. Please refresh the page and try again.");
+    },
   });
 
   const handleAsk = (promptToUse?: string) => {
     const query = promptToUse || copilotPrompt;
     if (!query.trim()) return;
+    setCopilotResponse(null);
     askMutation.mutate({ prompt: query.trim() });
     if (promptToUse) setCopilotPrompt(promptToUse);
   };
@@ -269,39 +274,32 @@ export function CopilotIntelligenceCard() {
               value={copilotPrompt}
               onChange={(e) => setCopilotPrompt(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAsk()}
-              placeholder="e.g. Can I afford a 40,000 LKR weekend trip to Ella?"
+              placeholder="Ask anything about saving more, budgeting, affording purchases, or runway..."
               className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 text-xs h-9 focus-visible:ring-emerald-500"
             />
             <Button
               onClick={() => handleAsk()}
               disabled={askMutation.isPending || !copilotPrompt.trim()}
               size="sm"
+              title={askMutation.isPending ? "Analyzing question..." : "Send question"}
               className="bg-emerald-600 hover:bg-emerald-500 text-white h-9 px-3 shrink-0"
             >
-              {askMutation.isPending ? "Analyzing..." : <Send className="h-3.5 w-3.5" />}
+              {askMutation.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Send className="h-3.5 w-3.5" />
+              )}
             </Button>
           </div>
 
-          {/* Prompt Suggestion Chips */}
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {[
-              "Can I afford a 40k LKR weekend trip?",
-              "How can I increase my runway to 8 months?",
-              "Where did my biggest spending spike occur?",
-            ].map((chip) => (
-              <button
-                key={chip}
-                onClick={() => handleAsk(chip)}
-                className="text-[11px] px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors flex items-center gap-1"
-              >
-                <Lightbulb className="h-3 w-3 text-emerald-400" />
-                {chip}
-              </button>
-            ))}
-          </div>
-
           {/* Copilot Response Display */}
-          {copilotResponse && (
+          {askMutation.isPending && (
+            <div className="p-3.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-emerald-400 mt-3 flex items-center gap-2 animate-pulse">
+              <Sparkles className="h-4 w-4 animate-spin shrink-0" />
+              <span>Analyzing your ledger transactions, runway, and financial context...</span>
+            </div>
+          )}
+          {!askMutation.isPending && copilotResponse && (
             <div className="p-3.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-200 mt-3 leading-relaxed whitespace-pre-line animate-in fade-in duration-200">
               {copilotResponse}
             </div>

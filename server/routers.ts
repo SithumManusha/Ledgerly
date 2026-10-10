@@ -1295,7 +1295,13 @@ Return strict JSON matching the schema.`,
 
         const contextSummary = `User Total Recorded Expenses: LKR ${(totalSpendCents / 100).toLocaleString()}; Monthly Budget: LKR ${(totalBudgetCents / 100).toLocaleString()}; Savings Reserves: ${savingsGoal?.targetCents ? `LKR ${(savingsGoal.targetCents / 100).toLocaleString()}` : "None set"}; Active categories: ${userBudgets.map(b => b.category).join(", ") || "None yet"}.`;
 
-        const answer = await queryFinancialCopilot(input.prompt, contextSummary);
+        const answer = await queryFinancialCopilot(input.prompt, contextSummary, {
+          totalSpendCents,
+          totalBudgetCents,
+          savingsCents,
+          expenses: userExpenses,
+          budgets: userBudgets,
+        });
         return { answer };
       }),
   }),
