@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
 import { formatMoney } from "@/lib/formatters";
 import { toast } from "sonner";
+import { Streamdown } from "streamdown";
 
 export function CopilotIntelligenceCard() {
   const [copilotPrompt, setCopilotPrompt] = useState("");
@@ -300,8 +301,8 @@ export function CopilotIntelligenceCard() {
             </div>
           )}
           {!askMutation.isPending && copilotResponse && (
-            <div className="p-3.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-200 mt-3 leading-relaxed whitespace-pre-line animate-in fade-in duration-200">
-              {copilotResponse}
+            <div className="p-4 rounded-lg bg-slate-800/80 border border-slate-700/80 text-xs text-slate-200 mt-3 leading-relaxed animate-in fade-in duration-200 prose prose-invert max-w-none [&_h3]:text-sm [&_h3]:font-bold [&_h3]:text-emerald-400 [&_h3]:mb-2 [&_h3]:mt-0 [&_strong]:text-white [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:my-1 [&_p]:my-1.5">
+              <Streamdown>{copilotResponse}</Streamdown>
             </div>
           )}
         </div>
