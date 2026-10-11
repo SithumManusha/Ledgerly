@@ -974,7 +974,10 @@ Return strict JSON matching the schema.`,
             }
           }
           if (extractedTotal <= 0) {
-            extractedTotal = 15000;
+            return {
+              success: false,
+              error: "Could not parse bill details from prompt. Please specify total amount, payer, and split rule.",
+            };
           }
           const totalCents = extractedTotal * 100;
 
