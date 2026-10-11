@@ -126,6 +126,7 @@ portfolio-showcase.*
 
 # Local test artifacts & screen captures
 videos/
+scripts/check_deploy.mjs
 scripts/debug_*.mjs
 scripts/record_*.mjs
 scripts/test_*.mjs
