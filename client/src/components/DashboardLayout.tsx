@@ -72,7 +72,7 @@ export default function DashboardLayout({
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
   const { loading, user } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"signin" | "register">("signin");
 
@@ -199,7 +199,11 @@ export default function DashboardLayout({
           open={authDialogOpen}
           initialMode={authMode}
           onOpenChange={setAuthDialogOpen}
-          onLogin={startLogin}
+          onLogin={() => {
+            if (location === "/login" || location.startsWith("/login")) {
+              setLocation("/");
+            }
+          }}
         />
       </div>
     );
