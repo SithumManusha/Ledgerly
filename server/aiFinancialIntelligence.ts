@@ -396,28 +396,28 @@ Respond in concise, professional markdown with specific metrics, numbers in LKR,
     }
   }
 
-  // Precise Intent Disambiguation
+  // Precise Intent Disambiguation (Typo-Tolerant)
   const isSavingsQuery =
-    /\b(save|saving|savings|accumulate|deposit|invest|more\s*money)\b/i.test(lowerPrompt) &&
-    !/\b(afford|buy|purchase|trip|laptop|phone)\b/i.test(lowerPrompt);
+    /(sav|depo|invest|accumul|more\s*m[ou]ney|grow\s*wealth)/i.test(lowerPrompt) &&
+    !/(afford|buy|purchas|trip|laptop|phone)/i.test(lowerPrompt);
 
   const isCostCuttingQuery =
-    /\b(cut|reduce|trim|lower|decrease|less\s*spend|save\s*on\s*bill|optimize)\b/i.test(lowerPrompt);
+    /(cut|reduc|trim|lower|decreas|less\s*spend|spend\s*less|sav.*on\s*bill|optimi)/i.test(lowerPrompt);
 
   const isRunwayQuery =
-    /\b(runway|emergency\s*fund|extend\s*runway|increase\s*runway)\b/i.test(lowerPrompt) ||
-    (/\bmonths?\b/i.test(lowerPrompt) && /\b(increase|reach|extend|target|grow)\b/i.test(lowerPrompt));
+    /(runway|emergency\s*fund|extend\s*runway|increas.*runway)/i.test(lowerPrompt) ||
+    (/months?/i.test(lowerPrompt) && /(increas|reach|extend|target|grow)/i.test(lowerPrompt));
 
   const isSpikeOrCategoryQuery =
-    /\b(spike|highest|biggest|largest|most\s*expensive|top\s*categor|where\s*(did|is)\s*(my|the)\s*money)\b/i.test(lowerPrompt) ||
-    (/\b(food|dining|rent|transport|utilities|entertainment|shopping)\b/i.test(lowerPrompt) && !/\bafford\b/i.test(lowerPrompt));
+    /(spike|highest|biggest|largest|most\s*expens|top\s*categor|where\s*(did|is)\s*(my|the)\s*m[ou]ney)/i.test(lowerPrompt) ||
+    (/(food|dining|rent|transport|utilit|entertainment|shopping)/i.test(lowerPrompt) && !/afford/i.test(lowerPrompt));
 
   const isTotalSpendQuery =
-    /\b(total\s*spend|total\s*spending|how\s*much.*spent|burn\s*rate|overview|summary)\b/i.test(lowerPrompt) &&
-    !/\bafford\b/i.test(lowerPrompt);
+    /(total\s*spend|total\s*spending|how\s*much.*spent|burn\s*rate|overview|summary)/i.test(lowerPrompt) &&
+    !/afford/i.test(lowerPrompt);
 
   const isAffordQuery =
-    /\b(afford|can\s*i\s*buy|can\s*i\s*afford|should\s*i\s*buy|can\s*i\s*take|trip|purchase)\b/i.test(lowerPrompt);
+    /(afford|can\s*i\s*buy|can\s*i\s*afford|should\s*i\s*buy|can\s*i\s*take|trip|purchas)/i.test(lowerPrompt);
 
   // ROUTE 1: Savings Strategy & Capital Accumulation
   if (isSavingsQuery) {
