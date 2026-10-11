@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 const { Pool } = pg;
@@ -565,6 +565,13 @@ export async function deleteSharedMember(userId: number, groupId: number, member
   if (!group) return false;
   const db = await getDb();
   if (db) {
+    try {
+      await db.delete(sharedBillShares).where(eq(sharedBillShares.memberId, memberId));
+      await db.update(sharedBills).set({ payerMemberId: null }).where(eq(sharedBills.payerMemberId, memberId));
+      await db.delete(sharedSettlements).where(or(eq(sharedSettlements.fromMemberId, memberId), eq(sharedSettlements.toMemberId, memberId)));
+    } catch (e) {
+      console.warn("Cascade cleanup on member delete warning:", e);
+    }
     const result = await db
       .delete(sharedGroupMembers)
       .where(and(eq(sharedGroupMembers.groupId, groupId), eq(sharedGroupMembers.id, memberId)))
@@ -574,6 +581,15 @@ export async function deleteSharedMember(userId: number, groupId: number, member
   const member = memStore.sharedGroupMembers.get(memberId);
   if (member && member.groupId === groupId) {
     memStore.sharedGroupMembers.delete(memberId);
+    for (const [k, s] of Array.from(memStore.sharedBillShares.entries())) {
+      if (s.memberId === memberId) memStore.sharedBillShares.delete(k);
+    }
+    for (const [, b] of Array.from(memStore.sharedBills.entries())) {
+      if (b.payerMemberId === memberId) b.payerMemberId = null;
+    }
+    for (const [k, st] of Array.from(memStore.sharedSettlements.entries())) {
+      if (st.fromMemberId === memberId || st.toMemberId === memberId) memStore.sharedSettlements.delete(k);
+    }
     return true;
   }
   return false;

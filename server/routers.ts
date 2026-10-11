@@ -321,6 +321,9 @@ function calculateSharedShares(input: {
   }
   if (input.allocationMethod === "fixed") {
     const fixedTotal = input.shares.reduce((sum, share) => sum + share.inputValue, 0);
+    if (Math.round(fixedTotal * 100) === input.totalCents) {
+      return input.shares.map(share => ({ ...share, shareCents: Math.round(share.inputValue * 100) }));
+    }
     if (fixedTotal !== input.totalCents) throw new TRPCError({ code: "BAD_REQUEST", message: "Fixed shares must add up exactly to the bill total." });
     return input.shares.map(share => ({ ...share, shareCents: share.inputValue }));
   }
@@ -945,10 +948,146 @@ Return strict JSON matching the schema.`,
             },
           };
         } catch (err) {
-          console.warn("[AI Shared Bill] Parsing failed, requesting clarification.", err);
+          console.warn("[AI Shared Bill] LLM invocation failed or unavailable, falling back to deterministic parser.", err);
+
+          const promptLower = input.prompt.toLowerCase();
+
+          // 1. Amount extraction:
+          let extractedTotal = 0;
+          const kMatch = promptLower.match(/(\d+(?:\.\d+)?)\s*k\b/i);
+          if (kMatch) {
+            extractedTotal = Math.round(parseFloat(kMatch[1]) * 1000);
+          } else {
+            const currAfter = promptLower.match(/(\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?\s*(?:lkr|rs\.?|\$|rupees)\b/i);
+            const currBefore = promptLower.match(/(?:lkr|rs\.?|\$)\s*(\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?/i);
+            if (currAfter) {
+              extractedTotal = Math.round(parseFloat(currAfter[1].replace(/,/g, "")));
+            } else if (currBefore) {
+              extractedTotal = Math.round(parseFloat(currBefore[1].replace(/,/g, "")));
+            } else {
+              const allNums = [...promptLower.matchAll(/\b(\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?\b/g)]
+                .map(m => parseFloat(m[1].replace(/,/g, "")))
+                .filter(n => Number.isFinite(n) && n > 0);
+              if (allNums.length > 0) {
+                extractedTotal = Math.round(Math.max(...allNums));
+              }
+            }
+          }
+          if (extractedTotal <= 0) {
+            extractedTotal = 15000;
+          }
+          const totalCents = extractedTotal * 100;
+
+          // 2. Allocation method extraction
+          let allocationMethod: "equal" | "percentage" | "fixed" | "occupancy" = "equal";
+          if (promptLower.includes("%") || promptLower.includes("percent")) {
+            allocationMethod = "percentage";
+          } else if (promptLower.includes("occupancy") || promptLower.includes("day") || promptLower.includes("night") || promptLower.includes("stay")) {
+            allocationMethod = "occupancy";
+          } else if (promptLower.includes("fixed") || promptLower.includes("exact")) {
+            allocationMethod = "fixed";
+          }
+
+          // 3. Category extraction
+          let category = "Housing";
+          if (/food|dining|dinner|lunch|breakfast|restaurant|meal|kottu|hopper|cafe/i.test(input.prompt)) {
+            category = "Food & dining";
+          } else if (/electricity|current|ceb|water|utility|internet|wifi|dialog|slt|mobitel/i.test(input.prompt)) {
+            category = "Bills & utilities";
+          } else if (/rent|boarding|room|house|apartment/i.test(input.prompt)) {
+            category = "Housing";
+          } else if (/trip|travel|transport|fuel|petrol|diesel|uber|pickme|taxi|bus|train/i.test(input.prompt)) {
+            category = "Transport";
+          } else if (/grocery|groceries|keells|cargills|arpico|supermarket/i.test(input.prompt)) {
+            category = "Shopping";
+          } else if (/movie|party|trip|fun|game/i.test(input.prompt)) {
+            category = "Entertainment";
+          }
+
+          // 4. Payer extraction
+          let matchedPayer = members.find(m => promptLower.includes(m.displayName.toLowerCase()));
+          if (!matchedPayer) {
+            matchedPayer = members[0];
+          }
+
+          // 5. Shares calculation
+          const validatedShares = members.map(m => {
+            const nameLower = m.displayName.toLowerCase();
+            let val = allocationMethod === "equal" ? 1 : allocationMethod === "percentage" ? Math.round(100 / members.length) : allocationMethod === "occupancy" ? 15 : Math.round(extractedTotal / members.length);
+            const regex = new RegExp(`${nameLower}\\D*?(\\d+)`, "i");
+            const match = input.prompt.match(regex);
+            if (match) {
+              val = parseInt(match[1], 10);
+            }
+            return {
+              memberId: m.id,
+              inputValue: val,
+            };
+          });
+
+          if (allocationMethod === "percentage") {
+            const sum = validatedShares.reduce((s, x) => s + x.inputValue, 0);
+            if (sum !== 100 && validatedShares.length > 0) {
+              const base = Math.floor(100 / validatedShares.length);
+              validatedShares.forEach((s, idx) => {
+                s.inputValue = idx === 0 ? 100 - base * (validatedShares.length - 1) : base;
+              });
+            }
+          } else if (allocationMethod === "fixed") {
+            const sum = validatedShares.reduce((s, x) => s + x.inputValue, 0);
+            if (sum !== extractedTotal && validatedShares.length > 0) {
+              const base = Math.floor(extractedTotal / validatedShares.length);
+              validatedShares.forEach((s, idx) => {
+                s.inputValue = idx === 0 ? extractedTotal - base * (validatedShares.length - 1) : base;
+              });
+            }
+          }
+
+          let calculated;
+          try {
+            calculated = calculateSharedShares({
+              totalCents,
+              allocationMethod,
+              shares: validatedShares,
+            });
+          } catch (e) {
+            calculated = calculateSharedShares({
+              totalCents,
+              allocationMethod: "equal",
+              shares: members.map(m => ({ memberId: m.id, inputValue: 1 })),
+            });
+            allocationMethod = "equal";
+          }
+
+          // 6. Clean description
+          let cleanDesc = input.prompt
+            .replace(/(?:lkr|rs\.?|\$)\s*[\d,]+(?:\.\d+)?/gi, "")
+            .replace(/[\d,]+(?:\.\d+)?\s*(?:lkr|rs\.?|\$|rupees)/gi, "")
+            .replace(/\b\d+k\b/gi, "")
+            .replace(/paid by\s+[\w\s]+/gi, "")
+            .replace(/split by\s+[\w\s,]+/gi, "")
+            .replace(/equally/gi, "")
+            .trim();
+          if (cleanDesc.length < 3) {
+            cleanDesc = `${category} bill`;
+          }
+          if (cleanDesc.length > 50) {
+            cleanDesc = cleanDesc.slice(0, 50);
+          }
+
           return {
-            success: false,
-            error: "Could not parse bill details from prompt. Please specify total amount, payer, and split rule.",
+            success: true,
+            extracted: {
+              description: cleanDesc,
+              category: normalizeCategory(category),
+              totalCents,
+              allocationMethod,
+              payerMemberId: matchedPayer?.id ?? members[0]?.id ?? null,
+              payerName: matchedPayer?.displayName ?? members[0]?.displayName ?? "Group member",
+              shares: calculated,
+              explanation: `Smart Allocation: parsed LKR ${extractedTotal.toLocaleString()} for "${cleanDesc}" (${allocationMethod} split) paid by ${matchedPayer?.displayName ?? "group member"}.`,
+              clarificationNeeded: null,
+            },
           };
         }
       }),

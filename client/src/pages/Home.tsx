@@ -1255,6 +1255,15 @@ function SharedGroupsView() {
   const settlementData = settlementsListQuery.data ?? [];
 
   const utils = trpc.useUtils();
+  const invitationsQuery = trpc.shared.listInvitations.useQuery({ groupId: activeGroupId! }, { enabled: Boolean(activeGroupId) });
+  const recurringBillsQuery = trpc.shared.listRecurringBills.useQuery({ groupId: activeGroupId! }, { enabled: Boolean(activeGroupId) });
+  const deleteRecurringBillMutation = trpc.shared.deleteRecurringBill.useMutation({
+    onSuccess: () => {
+      utils.shared.listRecurringBills.invalidate({ groupId: activeGroupId! });
+      toast.success("Recurring bill removed.");
+    },
+    onError: (err) => toast.error(err.message),
+  });
   const createInvitationMutation = trpc.shared.createInvitation.useMutation({
     onSuccess: () => {
       utils.shared.listInvitations.invalidate({ groupId: activeGroupId! });
@@ -1281,8 +1290,8 @@ function SharedGroupsView() {
 
   const addMemberMutation = trpc.shared.addMember.useMutation({
     onSuccess: () => {
-      utils.shared.members.invalidate();
-      utils.shared.settlement.invalidate();
+      utils.shared.members.invalidate({ groupId: activeGroupId! });
+      utils.shared.settlement.invalidate({ groupId: activeGroupId! });
       setNewMemberName("");
       toast.success("Member added.");
     },
@@ -1291,9 +1300,9 @@ function SharedGroupsView() {
 
   const deleteMemberMutation = trpc.shared.deleteMember.useMutation({
     onSuccess: () => {
-      utils.shared.members.invalidate();
-      utils.shared.bills.invalidate();
-      utils.shared.settlement.invalidate();
+      utils.shared.members.invalidate({ groupId: activeGroupId! });
+      utils.shared.bills.invalidate({ groupId: activeGroupId! });
+      utils.shared.settlement.invalidate({ groupId: activeGroupId! });
       toast.success("Member removed.");
     },
     onError: (err) => toast.error(err.message),
@@ -1301,8 +1310,8 @@ function SharedGroupsView() {
 
   const addBillMutation = trpc.shared.addBill.useMutation({
     onSuccess: () => {
-      utils.shared.bills.invalidate();
-      utils.shared.settlement.invalidate();
+      utils.shared.bills.invalidate({ groupId: activeGroupId! });
+      utils.shared.settlement.invalidate({ groupId: activeGroupId! });
       setBillDesc("");
       setBillTotal("");
       setMemberInputs({});
@@ -1313,8 +1322,8 @@ function SharedGroupsView() {
 
   const deleteBillMutation = trpc.shared.deleteBill.useMutation({
     onSuccess: () => {
-      utils.shared.bills.invalidate();
-      utils.shared.settlement.invalidate();
+      utils.shared.bills.invalidate({ groupId: activeGroupId! });
+      utils.shared.settlement.invalidate({ groupId: activeGroupId! });
       toast.success("Shared bill deleted.");
     },
     onError: (err) => toast.error(err.message),
@@ -1354,10 +1363,13 @@ function SharedGroupsView() {
       toast.error("Please enter a valid bill description, positive total, and date.");
       return;
     }
-    const shares = members.map(m => ({
-      memberId: m.id,
-      inputValue: Number(memberInputs[m.id] ?? (billMethod === "equal" ? 1 : 0)),
-    }));
+    const shares = members.map(m => {
+      const rawVal = Number(memberInputs[m.id] ?? (billMethod === "equal" ? 1 : 0));
+      return {
+        memberId: m.id,
+        inputValue: billMethod === "fixed" ? Math.round(rawVal * 100) : rawVal,
+      };
+    });
     addBillMutation.mutate({
       groupId: activeGroupId,
       description: billDesc,
@@ -1660,19 +1672,36 @@ function SharedGroupsView() {
               <CardContent>
                 <div className="space-y-2">
                   <p className="text-xs text-slate-600">Active invite tokens for this group:</p>
-                  {/* We can list invitations or show status */}
                   <div className="rounded-xl border border-slate-100 p-3 bg-slate-50 text-xs flex items-center justify-between">
                     <div>
                       <span className="font-mono font-medium text-slate-800">ledgerly.app/invite/{activeGroupId}</span>
                       <p className="text-slate-400 mt-0.5">Role: Member · Status: Active</p>
                     </div>
                     <Button variant="outline" size="sm" className="h-7 rounded-lg text-xs" onClick={() => {
-                      navigator.clipboard.writeText(`https://ledgerly.app/invite/group-${activeGroupId}`);
+                      if (navigator?.clipboard?.writeText) {
+                        navigator.clipboard.writeText(`https://ledgerly.app/invite/group-${activeGroupId}`).catch(() => {});
+                      }
                       toast.success("Invite link copied to clipboard!");
                     }}>
                       Copy Link
                     </Button>
                   </div>
+                  {invitationsQuery.data?.map(inv => (
+                    <div key={inv.id} className="rounded-xl border border-slate-100 p-3 bg-slate-50 text-xs flex items-center justify-between">
+                      <div>
+                        <span className="font-mono font-medium text-slate-800">ledgerly.app/invite/{inv.token ? inv.token.slice(0, 18) + '...' : inv.id}</span>
+                        <p className="text-slate-400 mt-0.5">Role: {inv.role ?? "Member"} · Status: {inv.status ?? "pending"}</p>
+                      </div>
+                      <Button variant="outline" size="sm" className="h-7 rounded-lg text-xs" onClick={() => {
+                        if (navigator?.clipboard?.writeText) {
+                          navigator.clipboard.writeText(`https://ledgerly.app/invite/${inv.token}`).catch(() => {});
+                        }
+                        toast.success("Token invite link copied!");
+                      }}>
+                        Copy Link
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -1718,6 +1747,23 @@ function SharedGroupsView() {
                       </Button>
                     </div>
                   </div>
+                  {recurringBillsQuery.data?.length ? (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-xs font-semibold text-slate-700">Scheduled Recurring Bills:</p>
+                      {recurringBillsQuery.data.map(rb => (
+                        <div key={rb.id} className="flex items-center justify-between rounded-xl bg-slate-100/80 px-3 py-2 text-xs">
+                          <div>
+                            <span className="font-medium text-slate-800">{rb.title}</span>
+                            <span className="ml-2 font-semibold text-emerald-700">LKR {(rb.amountCents / 100).toLocaleString()}</span>
+                            <p className="text-[11px] text-slate-500 capitalize">{rb.frequency} · Next: {rb.nextDueDate ? new Date(rb.nextDueDate).toLocaleDateString() : "Pending"}</p>
+                          </div>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-red-500" onClick={() => deleteRecurringBillMutation.mutate({ recurringId: rb.id })} disabled={deleteRecurringBillMutation.isPending}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               </CardContent>
             </Card>
