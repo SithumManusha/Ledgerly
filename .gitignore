@@ -126,6 +126,7 @@ portfolio-showcase.*
 
 # Local test artifacts & screen captures
 videos/
+project_media/videos/
 *.webm
 *.mp4
 *.mkv

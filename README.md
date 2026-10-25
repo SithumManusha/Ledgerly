@@ -4,6 +4,7 @@
 [![Vitest Passing](https://img.shields.io/badge/Vitest-68%2F68_Passing-success?logo=vitest)](server/intelligence.test.ts)
 [![TypeScript Strict](https://img.shields.io/badge/TypeScript-Strict_100%25-blue?logo=typescript)](tsconfig.json)
 [![CI](https://github.com/SithumManusha/Ledgerly/actions/workflows/ci.yml/badge.svg)](https://github.com/SithumManusha/Ledgerly/actions/workflows/ci.yml)
+[![CodeQL Security](https://github.com/SithumManusha/Ledgerly/actions/workflows/codeql.yml/badge.svg)](https://github.com/SithumManusha/Ledgerly/actions/workflows/codeql.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **Ledgerly** is a production-grade, enterprise-ready financial intelligence platform and collaborative expense tracker. Beyond conventional CRUD budgeting applications, Ledgerly integrates **Autonomous AI Financial Intelligence**, real-time predictive runway simulations, spending velocity anomaly alerts, and a cryptographically sound, event-driven collaborative ledger with Server-Sent Events (SSE).
