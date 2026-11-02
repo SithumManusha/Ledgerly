@@ -2,16 +2,32 @@ import { Client } from "pg";
 import dotenv from "dotenv";
 dotenv.config();
 
-const DEFAULT_DB_HOST = "db.nlcbqueuubymrlsqmeoc.supabase.co";
-const DEFAULT_DB_USER = "postgres";
-const DEFAULT_DB_PASS = "ledgerly%40570s";
-const DEFAULT_DB_NAME = "postgres";
+// Supabase IPv4 Pooler Configuration (Required because GitHub Actions runners are IPv4-only)
+const POOLER_HOST = "aws-0-ap-northeast-1.pooler.supabase.com";
+const POOLER_USER = "postgres.nlcbqueuubymrlsqmeoc";
+const POOLER_PASS = "ledgerly%40570s";
+const POOLER_PORT = 6543;
+const POOLER_DB = "postgres";
 
-const envUrl = (process.env.DATABASE_URL || process.env.database_url || "").trim();
+const defaultPoolerUrl =
+  "postgresql://" +
+  POOLER_USER +
+  ":" +
+  POOLER_PASS +
+  "@" +
+  POOLER_HOST +
+  ":" +
+  POOLER_PORT +
+  "/" +
+  POOLER_DB;
 
-const connectionString =
-  envUrl ||
-  `postgresql://${DEFAULT_DB_USER}:${DEFAULT_DB_PASS}@${DEFAULT_DB_HOST}:5432/${DEFAULT_DB_NAME}`;
+let connectionString = (process.env.DATABASE_URL || process.env.database_url || "").trim();
+
+// Automatically adapt IPv6 direct host to IPv4 Pooler host for cloud CI runners
+if (!connectionString || connectionString.includes("db.nlcbqueuubymrlsqmeoc.supabase.co")) {
+  console.log("  [IPv4 Bridge] Using Supabase IPv4 Pooler (ap-northeast-1) for GitHub Actions compatibility.");
+  connectionString = defaultPoolerUrl;
+}
 
 const RENDER_APP_URL = process.env.APP_URL || "https://ledgerly-mbcd.onrender.com";
 
@@ -19,13 +35,11 @@ async function ping() {
   console.log("=========================================");
   console.log("  Ledgerly Cloud Keep-Alive & Health Ping");
   console.log("=========================================");
-  console.log(`[Config] Database target: ${DEFAULT_DB_HOST}`);
-  console.log(`[Config] Secret provided: ${envUrl ? "YES (from GitHub Secrets)" : "FALLBACK (Built-in Connection)"}`);
 
   let hasError = false;
 
-  // 1. Ping Supabase PostgreSQL
-  console.log("\n[1/2] Connecting to Supabase PostgreSQL...");
+  // 1. Ping Supabase PostgreSQL via IPv4
+  console.log("\n[1/2] Connecting to Supabase via IPv4 Pooler...");
   const client = new Client({
     connectionString,
     ssl: { rejectUnauthorized: false },
