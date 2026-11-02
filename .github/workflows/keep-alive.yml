@@ -33,9 +33,21 @@ jobs:
       - name: Execute Keep-Alive Ping
         id: ping
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.database_url || '' }}
           APP_URL: "https://ledgerly-mbcd.onrender.com"
         run: node scripts/ping.mjs
+
+      - name: Auto-Close Previous Incident Issues on Success
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue list --label "bug" --state open --json number,title | jq -r '.[] | select(.title | contains("Keep-Alive Health Check Failed")) | .number' | while read -r issue_num; do
+            if [ -n "$issue_num" ]; then
+              echo "Closing resolved issue #$issue_num"
+              gh issue close "$issue_num" --comment "✅ Resolved: Database connection verified and active. Supabase 7-day inactivity timer reset."
+            fi
+          done || true
 
       - name: Open GitHub Issue on Failure
         if: failure()
@@ -48,6 +60,6 @@ jobs:
             
             **Action Required:**
             - Check Supabase Dashboard immediately: https://supabase.com/dashboard/project/nlcbqueuubymrlsqmeoc
-            - Verify if project was paused or if DATABASE_URL secret was changed.
+            - Verify if project was paused or if credentials changed.
             - Check Render deployment: https://dashboard.render.com" \
             --label "bug"
