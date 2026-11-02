@@ -2,10 +2,11 @@ import { Client } from "pg";
 import dotenv from "dotenv";
 dotenv.config();
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL ? process.env.DATABASE_URL.trim() : "";
 
 if (!connectionString) {
   console.error("Error: DATABASE_URL environment variable is not defined!");
+  console.error("Make sure the DATABASE_URL secret is configured in GitHub Repository Secrets.");
   process.exit(1);
 }
 
@@ -23,7 +24,7 @@ async function ping() {
   const client = new Client({
     connectionString,
     ssl: { rejectUnauthorized: false },
-    connectionTimeoutMillis: 20000,
+    connectionTimeoutMillis: 25000,
   });
 
   try {
@@ -47,19 +48,19 @@ async function ping() {
     const response = await fetch(RENDER_APP_URL, {
       method: "GET",
       headers: { "User-Agent": "Ledgerly-HealthCheck-Bot/1.0" },
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.timeout(35000),
     });
     console.log(`  ✓ Render Live App responded with HTTP status: ${response.status}`);
   } catch (err) {
-    console.warn("  ! Render app ping warning (might be waking up):", err.message);
+    console.warn("  ! Render app ping notice (Render may be spinning up):", err.message);
   }
 
   console.log("\n=========================================");
   if (hasError) {
-    console.error("Health check failed!");
+    console.error("Keep-Alive health check failed!");
     process.exit(1);
   } else {
-    console.log("All systems operational & kept alive!");
+    console.log("All systems operational & kept alive successfully!");
   }
 }
 

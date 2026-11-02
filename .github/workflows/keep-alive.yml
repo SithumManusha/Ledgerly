@@ -18,13 +18,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'pnpm'
 
-      - name: Install Ping Dependencies
-        run: npm install pg dotenv
+      - name: Install Dependencies
+        run: pnpm install --no-frozen-lockfile
 
       - name: Execute Keep-Alive Ping
         id: ping
@@ -46,4 +50,4 @@ jobs:
             - Check Supabase Dashboard immediately: https://supabase.com/dashboard/project/nlcbqueuubymrlsqmeoc
             - Verify if project was paused or if DATABASE_URL secret was changed.
             - Check Render deployment: https://dashboard.render.com" \
-            --label "incident"
+            --label "bug"
