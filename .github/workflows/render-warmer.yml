@@ -1,0 +1,27 @@
+name: Render App Warmer (Prevent Cold Start)
+
+on:
+  schedule:
+    # Runs every 10 minutes to prevent Render's 15-minute inactivity spin-down
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allows manual run anytime from GitHub Actions tab
+
+jobs:
+  keep-warm:
+    name: Ping Render Live Container
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Warm-Up Request
+        run: |
+          echo "========================================="
+          echo " Pinging Render App to Prevent Cold Sleep"
+          echo "========================================="
+          URL="https://ledgerly-mbcd.onrender.com"
+          HTTP_STATUS=$(curl -s -L -o /dev/null -w "%{http_code}" "$URL")
+          echo "Target: $URL"
+          echo "HTTP Status Code: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 400 ]; then
+            echo "✅ SUCCESS: Render app is warm, active, and responsive!"
+          else
+            echo "⚠️ Notice: Returned HTTP $HTTP_STATUS"
+          fi
