@@ -1,6 +1,6 @@
 # Ledgerly — Autonomous AI Financial Intelligence & Collaborative Ledger
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-Online-2ea44f?logo=render)](https://ledgerly-mbcd.onrender.com)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Online-2ea44f?logo=vercel)](https://ledgerly-nine-rust.vercel.app)
 [![Vitest Passing](https://img.shields.io/badge/Vitest-68%2F68_Passing-success?logo=vitest)](server/intelligence.test.ts)
 [![TypeScript Strict](https://img.shields.io/badge/TypeScript-Strict_100%25-blue?logo=typescript)](tsconfig.json)
 [![CI](https://github.com/SithumManusha/Ledgerly/actions/workflows/ci.yml/badge.svg)](https://github.com/SithumManusha/Ledgerly/actions/workflows/ci.yml)
@@ -9,7 +9,7 @@
 
 **Ledgerly** is a production-grade, enterprise-ready financial intelligence platform and collaborative expense tracker. Beyond conventional CRUD budgeting applications, Ledgerly integrates **Autonomous AI Financial Intelligence**, real-time predictive runway simulations, spending velocity anomaly alerts, and a cryptographically sound, event-driven collaborative ledger with Server-Sent Events (SSE).
 
-- **🌐 Live Production URL:** [https://ledgerly-mbcd.onrender.com](https://ledgerly-mbcd.onrender.com)
+- **🌐 Live Production URL:** [https://ledgerly-nine-rust.vercel.app](https://ledgerly-nine-rust.vercel.app)
 - **💻 GitHub Repository:** [https://github.com/SithumManusha/Ledgerly](https://github.com/SithumManusha/Ledgerly)
 - **📐 Architecture:** React 19, TypeScript, tRPC 11, Express 4, PostgreSQL (Drizzle ORM), Recharts, Server-Sent Events (SSE)
 
