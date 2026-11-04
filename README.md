@@ -146,15 +146,14 @@ The application will be accessible at `http://localhost:3000`.
 
 ---
 
-## 🚢 Production Deployment (Render)
+## 🚢 Production Deployment Architecture
 
-Ledgerly is continuously deployed on Render:
-- **Build Command:** `pnpm install --frozen-lockfile && pnpm build`
-- **Start Command:** `pnpm start` (Runs database bootstrap and launches production Node service)
-- **Environment Variables:**
-  - `DATABASE_URL`: Hosted PostgreSQL connection URI with SSL
+Ledgerly is deployed as a high-performance decoupled 3-tier cloud architecture:
+- **Frontend (Vercel Edge):** Continuous global deployment via [Vercel](https://ledgerly-nine-rust.vercel.app) with 0.05s instant load time and zero cold starts.
+- **Backend API (Render Cloud):** Continuous deployment on Render running the Node.js Express, tRPC 11, SSE streaming, and in-memory PDFKit engines.
+  - `DATABASE_URL`: Hosted PostgreSQL connection URI (Supabase) with SSL
   - `JWT_SECRET`: High-entropy secret key for session verification
-  - `APP_URL`: Production origin (`https://ledgerly-mbcd.onrender.com`)
+  - `APP_URL`: Production origin (`https://ledgerly-nine-rust.vercel.app`)
   - `NODE_ENV`: `production`
 
 ---
